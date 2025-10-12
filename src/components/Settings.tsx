@@ -1118,6 +1118,110 @@ export const Settings: React.FC<SettingsProps> = ({ onConnectionChange }) => {
         </Button>
       </div>
 
+      {/* MCP Server Info */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Bot className="w-5 h-5 text-purple-500" />
+            <span>AI MCP Server</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4">
+            <h4 className="font-medium text-purple-900 mb-2 flex items-center">
+              <CheckCircle className="w-4 h-4 mr-2" />
+              MCP Server Active
+            </h4>
+            <p className="text-sm text-purple-800 mb-3">
+              The Model Context Protocol (MCP) server provides AI assistants with structured access to your Home Assistant data.
+            </p>
+
+            <div className="bg-white/70 rounded p-3 space-y-2">
+              <h5 className="font-medium text-purple-900 text-sm mb-2">Phase 1: Read-Only Tools (Active)</h5>
+              <div className="grid grid-cols-2 gap-2 text-xs text-purple-800">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="w-3 h-3 text-green-600" />
+                  <span>home/entities</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="w-3 h-3 text-green-600" />
+                  <span>home/states</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="w-3 h-3 text-green-600" />
+                  <span>home/automations</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="w-3 h-3 text-green-600" />
+                  <span>home/scripts</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="w-3 h-3 text-green-600" />
+                  <span>home/services</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="w-3 h-3 text-green-600" />
+                  <span>home/energy</span>
+                </div>
+                <div className="flex items-center space-x-2 col-span-2">
+                  <CheckCircle className="w-3 h-3 text-green-600" />
+                  <span className="font-medium">home/ai_context</span>
+                  <span className="text-gray-600">(Consolidated AI context)</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/70 rounded p-3 mt-3 space-y-2">
+              <h5 className="font-medium text-gray-700 text-sm mb-2">Phase 2: Actions (Coming Soon)</h5>
+              <div className="grid grid-cols-1 gap-2 text-xs text-gray-600">
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="w-3 h-3 text-yellow-600" />
+                  <span>home/call_service (with minimal allowlist)</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="w-3 h-3 text-yellow-600" />
+                  <span>Policy checks (time-of-day, energy price, occupancy)</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/70 rounded p-3 mt-3 space-y-2">
+              <h5 className="font-medium text-gray-700 text-sm mb-2">Phase 3: Audit & Traces (Planned)</h5>
+              <div className="grid grid-cols-1 gap-2 text-xs text-gray-600">
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="w-3 h-3 text-gray-400" />
+                  <span>Tool call logging with reason + inputs</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="w-3 h-3 text-gray-400" />
+                  <span>Audit trail for all AI actions</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="w-3 h-3 text-gray-400" />
+                  <span>Rollback capabilities</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h4 className="font-medium text-blue-900 mb-2">MCP Server Endpoint</h4>
+            <code className="text-xs bg-blue-100 px-2 py-1 rounded text-blue-900 block overflow-x-auto">
+              {import.meta.env.VITE_SUPABASE_URL}/functions/v1/home-assistant-mcp
+            </code>
+            <p className="text-xs text-blue-700 mt-2">
+              The MCP server automatically uses your Home Assistant credentials when making requests.
+            </p>
+          </div>
+
+          <div className="text-xs text-gray-600 space-y-1">
+            <p><strong>What is MCP?</strong> Model Context Protocol gives AI assistants structured, secure access to your home data.</p>
+            <p><strong>Benefits:</strong> Better AI understanding, smarter suggestions, context-aware automations.</p>
+            <p><strong>Security:</strong> Read-only in Phase 1. Phase 2 actions require explicit allowlist and policy checks.</p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* System Info */}
       <Card className="bg-gray-50">
         <CardContent className="p-6">
