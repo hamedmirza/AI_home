@@ -4,6 +4,38 @@
 
 The Home Assistant MCP (Model Context Protocol) Server provides AI assistants with structured, secure access to your Home Assistant data through a standardized interface.
 
+## Quick Test (Easiest!)
+
+### Using the Built-in Test Interface
+
+1. **Connect to Home Assistant** in Settings first (if not already connected)
+2. Click **"MCP Test"** in the sidebar
+3. Click **"Test All"** to test all endpoints at once
+4. View results with success/error status, duration, and data preview
+
+**What you'll see:**
+- ✅ Green checkmarks for successful tests
+- ❌ Red X for errors (with error messages)
+- Response time in milliseconds
+- Number of items returned
+- Raw JSON data in expandable section
+
+### Using curl
+
+```bash
+curl -X POST \
+  "${VITE_SUPABASE_URL}/functions/v1/home-assistant-mcp" \
+  -H "Authorization: Bearer ${VITE_SUPABASE_ANON_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "home/ai_context",
+    "ha_config": {
+      "url": "http://homeassistant.local:8123",
+      "token": "YOUR_LONG_LIVED_ACCESS_TOKEN"
+    }
+  }'
+```
+
 ## Deployment
 
 The MCP server is deployed as a Supabase Edge Function at:

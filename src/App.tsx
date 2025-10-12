@@ -13,12 +13,13 @@ import { Automations } from './components/Automations';
 import { Settings } from './components/Settings';
 import { FloatingChat } from './components/FloatingChat';
 import { SmartDashboard } from './components/SmartDashboard';
+import { MCPTest } from './components/MCPTest';
 import { Entity } from './types/homeAssistant';
 import { homeAssistantService } from './services/homeAssistant';
 import { energyPricingService } from './services/energyPricingService';
-import { Home, Settings as SettingsIcon, Zap, Bot, Grid3x3 as Grid3X3, Menu, X, LayoutDashboard, Activity, Battery, Brain } from 'lucide-react';
+import { Home, Settings as SettingsIcon, Zap, Bot, Grid3x3 as Grid3X3, Menu, X, LayoutDashboard, Activity, Battery, Brain, TestTube } from 'lucide-react';
 
-type ActiveTab = 'overview' | 'dashboards' | 'smart-dashboards' | 'entities' | 'energy' | 'energy-dashboard' | 'automations' | 'ai' | 'ai-insights' | 'settings';
+type ActiveTab = 'overview' | 'dashboards' | 'smart-dashboards' | 'entities' | 'energy' | 'energy-dashboard' | 'automations' | 'ai' | 'ai-insights' | 'mcp-test' | 'settings';
 
 function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
@@ -283,6 +284,12 @@ function App() {
       description: 'AI learning dashboard'
     },
     {
+      id: 'mcp-test' as ActiveTab,
+      name: 'MCP Test',
+      icon: TestTube,
+      description: 'Test MCP server integration'
+    },
+    {
       id: 'settings' as ActiveTab,
       name: 'Settings',
       icon: SettingsIcon,
@@ -318,6 +325,8 @@ function App() {
         return <AIAssistant isConnected={isConnected} onEntityUpdate={loadEntities} />;
       case 'ai-insights':
         return <AIInsights />;
+      case 'mcp-test':
+        return <MCPTest />;
       case 'settings':
         return <Settings onConnectionChange={setIsConnected} />;
       default:
