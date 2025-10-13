@@ -119,6 +119,7 @@ export function FloatingChat({ isConnected, onEntityUpdate }: FloatingChatProps)
             isUser: payload.new.role === 'user',
             timestamp: new Date(payload.new.created_at),
             feedback: payload.new.metadata?.feedback || null,
+            responseTime: payload.new.metadata?.responseTime || undefined,
           };
 
           setMessages(prev => {
