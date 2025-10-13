@@ -45,10 +45,63 @@ export function AuditTrail() {
       setSuggestions(suggs);
       setRollbackPoints(rollbacks);
       setStats(statistics);
+
+      // Auto-seed sample data if empty
+      if (logs.length === 0 && suggs.length === 0 && rollbacks.length === 0) {
+        await seedSampleData();
+      }
     } catch (error) {
       console.error('Failed to load audit data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const seedSampleData = async () => {
+    try {
+      // Create sample action logs
+      await auditService.logAction({
+        action_type: 'service_call',
+        entity_id: 'light.living_room',
+        service: 'light.turn_on',
+        data: { brightness: 200 },
+        reason: 'User manually turned on light',
+        source: 'user_manual',
+        before_state: 'off',
+        after_state: 'on',
+        success: true,
+        duration_ms: 145
+      });
+
+      await auditService.logAction({
+        action_type: 'automation',
+        entity_id: 'switch.bedroom_fan',
+        service: 'switch.turn_off',
+        data: {},
+        reason: 'Scheduled automation at 10 PM',
+        source: 'automation',
+        before_state: 'on',
+        after_state: 'off',
+        success: true,
+        duration_ms: 98
+      });
+
+      // Create sample suggestion
+      await auditService.createSuggestion({
+        suggestion_type: 'energy_optimization',
+        title: 'Optimize bedroom lighting schedule',
+        description: 'Your bedroom lights are often on when no motion is detected. Consider adding motion sensors or adjusting the schedule.',
+        confidence: 0.85,
+        entity_ids: ['light.bedroom_main', 'light.bedroom_reading'],
+        config_changes: { schedule: { on: '07:00', off: '23:00' } },
+        estimated_savings: 12.5,
+        source: 'usage_pattern_analysis'
+      });
+
+      // Reload data to show sample entries
+      await loadData();
+    } catch (error) {
+      console.error('Failed to seed sample data:', error);
     }
   };
 
