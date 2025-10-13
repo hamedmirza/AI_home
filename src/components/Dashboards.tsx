@@ -49,6 +49,10 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
   const [newCardEntityIds, setNewCardEntityIds] = useState<string[]>([]);
   const [newCardDisplayMode, setNewCardDisplayMode] = useState<'compact' | 'detailed' | 'minimal'>('detailed');
 
+  // Edit card state
+  const [editingCard, setEditingCard] = useState<DashboardCard | null>(null);
+  const [showEditCard, setShowEditCard] = useState(false);
+
   useEffect(() => {
     loadDashboards();
   }, []);
@@ -170,6 +174,48 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
     await saveDashboards(updated);
 
     setShowAddCard(false);
+    setNewCardTitle('');
+    setNewCardEntityId('');
+    setNewCardEntityIds([]);
+  };
+
+  const startEditCard = (card: DashboardCard) => {
+    setEditingCard(card);
+    setNewCardType(card.type);
+    setNewCardTitle(card.title);
+    setNewCardEntityId(card.entityId || '');
+    setNewCardEntityIds(card.entityIds || []);
+    setNewCardDisplayMode(card.displayMode || 'detailed');
+    setShowEditCard(true);
+  };
+
+  const saveEditCard = async () => {
+    if (!editingCard || !newCardTitle.trim()) {
+      alert('Please enter a card title');
+      return;
+    }
+
+    const dashboard = dashboards.find(d => d.id === activeDashboard);
+    if (!dashboard) return;
+
+    const updatedCard: DashboardCard = {
+      ...editingCard,
+      type: newCardType,
+      title: newCardTitle,
+      entityId: ['entity', 'gauge', 'history-graph', 'sensor', 'button'].includes(newCardType) ? newCardEntityId : undefined,
+      entityIds: newCardType === 'entities-group' ? newCardEntityIds : undefined,
+      displayMode: newCardDisplayMode
+    };
+
+    dashboard.cards = dashboard.cards.map(c => c.id === editingCard.id ? updatedCard : c);
+    dashboard.updatedAt = new Date();
+
+    const updated = dashboards.map(d => d.id === dashboard.id ? dashboard : d);
+    setDashboards(updated);
+    await saveDashboards(updated);
+
+    setShowEditCard(false);
+    setEditingCard(null);
     setNewCardTitle('');
     setNewCardEntityId('');
     setNewCardEntityIds([]);
@@ -329,9 +375,14 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
       return (
         <Card key={card.id} className="relative">
           {editMode && (
-            <button onClick={() => removeCard(card.id)} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded hover:bg-red-600 z-10">
-              <X className="w-4 h-4" />
-            </button>
+            <div className="absolute top-2 right-2 flex gap-1 z-10">
+              <button onClick={() => startEditCard(card)} className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+                <Edit3 className="w-4 h-4" />
+              </button>
+              <button onClick={() => removeCard(card.id)} className="p-1 bg-red-500 text-white rounded hover:bg-red-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           )}
           <div className="p-6">
             <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
@@ -399,9 +450,14 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
       return (
         <Card key={card.id} className="relative">
           {editMode && (
-            <button onClick={() => removeCard(card.id)} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded hover:bg-red-600 z-10">
-              <X className="w-4 h-4" />
-            </button>
+            <div className="absolute top-2 right-2 flex gap-1 z-10">
+              <button onClick={() => startEditCard(card)} className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+                <Edit3 className="w-4 h-4" />
+              </button>
+              <button onClick={() => removeCard(card.id)} className="p-1 bg-red-500 text-white rounded hover:bg-red-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           )}
           <div className="p-6">
             <h3 className="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
@@ -423,9 +479,14 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
       return (
         <Card key={card.id} className="relative">
           {editMode && (
-            <button onClick={() => removeCard(card.id)} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded hover:bg-red-600 z-10">
-              <X className="w-4 h-4" />
-            </button>
+            <div className="absolute top-2 right-2 flex gap-1 z-10">
+              <button onClick={() => startEditCard(card)} className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+                <Edit3 className="w-4 h-4" />
+              </button>
+              <button onClick={() => removeCard(card.id)} className="p-1 bg-red-500 text-white rounded hover:bg-red-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           )}
           <div className="p-6 flex items-center justify-center">
             <Button onClick={() => onEntityToggle(card.entityId!)} className="w-full py-8">
@@ -613,7 +674,7 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
                   />
                 </div>
 
-                {newCardType === 'entity' && (
+                {(newCardType === 'entity' || newCardType === 'gauge' || newCardType === 'history-graph' || newCardType === 'sensor' || newCardType === 'button' || newCardType === 'weather' || newCardType === 'energy') && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Select Entity
@@ -667,6 +728,125 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
                 <div className="flex gap-3 pt-4">
                   <Button onClick={addCard} className="flex-1">Add Card</Button>
                   <Button onClick={() => setShowAddCard(false)} variant="secondary">Cancel</Button>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Edit Card Modal */}
+      {showEditCard && editingCard && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <Card className="w-full max-w-2xl my-8">
+            <div className="p-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                Edit Card
+              </h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Card Type
+                  </label>
+                  <select
+                    value={newCardType}
+                    onChange={(e) => setNewCardType(e.target.value as any)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  >
+                    <option value="entity">Entity Card - Single device control</option>
+                    <option value="entities-group">Entities Group - Multiple devices</option>
+                    <option value="gauge">Gauge - Visual meter for sensors</option>
+                    <option value="history-graph">History Graph - Time-series chart</option>
+                    <option value="sensor">Sensor - Display sensor values</option>
+                    <option value="weather">Weather - Weather forecast</option>
+                    <option value="energy">Energy - Power monitoring</option>
+                    <option value="button">Button - Quick action</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Display Mode
+                  </label>
+                  <select
+                    value={newCardDisplayMode}
+                    onChange={(e) => setNewCardDisplayMode(e.target.value as any)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  >
+                    <option value="detailed">Detailed (Show all entity info)</option>
+                    <option value="compact">Compact (Show state only)</option>
+                    <option value="minimal">Minimal (Control only)</option>
+                  </select>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Choose how much information to display on the card
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Card Title
+                  </label>
+                  <Input
+                    value={newCardTitle}
+                    onChange={(e) => setNewCardTitle(e.target.value)}
+                    placeholder="e.g., Living Room Lights"
+                  />
+                </div>
+
+                {(newCardType === 'entity' || newCardType === 'gauge' || newCardType === 'history-graph' || newCardType === 'sensor' || newCardType === 'button' || newCardType === 'weather' || newCardType === 'energy') && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Select Entity
+                    </label>
+                    <select
+                      value={newCardEntityId}
+                      onChange={(e) => setNewCardEntityId(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    >
+                      <option value="">Choose an entity...</option>
+                      {entities.map(entity => (
+                        <option key={entity.entity_id} value={entity.entity_id}>
+                          {entity.friendly_name || entity.entity_id} ({entity.state})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {newCardType === 'entities-group' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Select Entities ({newCardEntityIds.length} selected)
+                    </label>
+                    <div className="max-h-64 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg p-3 space-y-2">
+                      {entities.map(entity => (
+                        <label
+                          key={entity.entity_id}
+                          className="flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={newCardEntityIds.includes(entity.entity_id)}
+                            onChange={() => toggleEntitySelection(entity.entity_id)}
+                            className="w-4 h-4"
+                          />
+                          <div className="flex-1">
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                              {entity.friendly_name || entity.entity_id}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              {entity.entity_id} - {entity.state}
+                            </div>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-4">
+                  <Button onClick={saveEditCard} className="flex-1">Save Changes</Button>
+                  <Button onClick={() => { setShowEditCard(false); setEditingCard(null); }} variant="secondary">Cancel</Button>
                 </div>
               </div>
             </div>
