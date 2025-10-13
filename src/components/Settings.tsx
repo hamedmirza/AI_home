@@ -30,7 +30,7 @@ interface SettingsProps {
 }
 
 export const Settings: React.FC<SettingsProps> = ({ onConnectionChange }) => {
-  const [config, setConfig] = useState<HomeAssistantConfig>({
+  const [config, setConfig] = useState<BackendConfig>({
     url: 'http://homeassistant.local:8123',
     token: '',
     connected: false,
@@ -46,7 +46,7 @@ export const Settings: React.FC<SettingsProps> = ({ onConnectionChange }) => {
     energyAlerts: true,
     deviceOfflineAlerts: true,
     aiSuggestions: true,
-    aiProvider: 'homeassistant',
+    aiProvider: 'Backend Server',
     openaiApiKey: '',
     claudeApiKey: '',
     geminiApiKey: '',
