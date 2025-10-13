@@ -330,7 +330,7 @@ export const EntityManager: React.FC<EntityManagerProps> = ({ entities, onEntity
                   <Grid3x3 className="w-4 h-4" />
                 </Button>
                 <Button
-                  variant={viewMode === 'list' ? 'primary' : 'ghost'}
+                  variant={viewMode === 'grid' ? 'primary' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('list')}
                   className="rounded-none border-0 border-l border-gray-300"
