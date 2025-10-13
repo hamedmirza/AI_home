@@ -37,6 +37,7 @@ class EnergyPricingService {
 
   private updateInterval: NodeJS.Timeout | null = null;
   private listeners: Array<(pricing: EnergyPricing) => void> = [];
+  private isUpdating: boolean = false;
 
   async getPricing(): Promise<EnergyPricing> {
     try {
@@ -47,7 +48,7 @@ class EnergyPricingService {
         .maybeSingle();
 
       if (data) {
-        return {
+        const pricing = {
           general_price: Number(data.general_price),
           feed_in_tariff: Number(data.feed_in_tariff),
           currency: data.currency || 'USD',
@@ -55,6 +56,23 @@ class EnergyPricingService {
           update_interval_minutes: data.update_interval_minutes || 5,
           last_updated: data.last_updated
         };
+
+        // Auto-update if dynamic mode and data is stale
+        if (pricing.pricing_mode === 'dynamic' && pricing.last_updated && !this.isUpdating) {
+          const lastUpdate = new Date(pricing.last_updated).getTime();
+          const now = Date.now();
+          const minutesSinceUpdate = (now - lastUpdate) / (1000 * 60);
+
+          if (minutesSinceUpdate >= pricing.update_interval_minutes) {
+            console.log(`[ENERGY PRICING] Data is stale (${minutesSinceUpdate.toFixed(1)} min old), triggering update...`);
+            this.isUpdating = true;
+            this.updateDynamicPrices()
+              .catch(err => console.error('[ENERGY PRICING] Background update failed:', err))
+              .finally(() => { this.isUpdating = false; });
+          }
+        }
+
+        return pricing;
       }
 
       return this.defaultPricing;
