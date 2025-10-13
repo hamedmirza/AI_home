@@ -58,9 +58,11 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
   }, []);
 
   const loadDashboards = async () => {
+    console.log('[Dashboards] Loading dashboards from database...');
     setLoading(true);
     try {
       const saved = await dbService.getPreference('dashboards');
+      console.log('[Dashboards] Loaded from DB:', saved);
       if (saved && Array.isArray(saved)) {
         const dashboardsWithDates = saved.map((d: any) => ({
           ...d,
@@ -68,11 +70,17 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
           updatedAt: new Date(d.updatedAt),
           cards: d.cards || []
         }));
+        console.log('[Dashboards] Processed dashboards:', dashboardsWithDates.length, 'total');
+        dashboardsWithDates.forEach(d => {
+          console.log('[Dashboards] Dashboard:', d.name, 'cards:', d.cards.length);
+        });
         setDashboards(dashboardsWithDates);
         if (dashboardsWithDates.length > 0 && !activeDashboard) {
           setActiveDashboard(dashboardsWithDates[0].id);
+          console.log('[Dashboards] Set active dashboard to:', dashboardsWithDates[0].id);
         }
       } else {
+        console.log('[Dashboards] No saved dashboards, creating default');
         const defaultDashboard: Dashboard = {
           id: 'default',
           name: 'Home',
@@ -138,6 +146,14 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
   };
 
   const addCard = async () => {
+    console.log('[Dashboards] Adding card:', {
+      type: newCardType,
+      title: newCardTitle,
+      entityId: newCardEntityId,
+      entityIds: newCardEntityIds,
+      displayMode: newCardDisplayMode
+    });
+
     if (!newCardTitle.trim()) {
       alert('Please enter a card title');
       return;
@@ -154,7 +170,10 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
     }
 
     const dashboard = dashboards.find(d => d.id === activeDashboard);
-    if (!dashboard) return;
+    if (!dashboard) {
+      console.error('[Dashboards] Dashboard not found:', activeDashboard);
+      return;
+    }
 
     const newCard: DashboardCard = {
       id: Date.now().toString(),
@@ -166,12 +185,18 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
       displayMode: newCardDisplayMode
     };
 
+    console.log('[Dashboards] New card created:', newCard);
+
     dashboard.cards.push(newCard);
     dashboard.updatedAt = new Date();
+
+    console.log('[Dashboards] Dashboard now has', dashboard.cards.length, 'cards');
 
     const updated = dashboards.map(d => d.id === dashboard.id ? dashboard : d);
     setDashboards(updated);
     await saveDashboards(updated);
+
+    console.log('[Dashboards] Card added and saved successfully');
 
     setShowAddCard(false);
     setNewCardTitle('');
@@ -222,8 +247,13 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
   };
 
   const removeCard = async (cardId: string) => {
+    console.log('[Dashboards] Removing card:', cardId);
+
     const dashboard = dashboards.find(d => d.id === activeDashboard);
-    if (!dashboard) return;
+    if (!dashboard) {
+      console.error('[Dashboards] Dashboard not found for card removal:', activeDashboard);
+      return;
+    }
 
     dashboard.cards = dashboard.cards.filter(c => c.id !== cardId);
     dashboard.updatedAt = new Date();
@@ -242,9 +272,22 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
   };
 
   const renderCard = (card: DashboardCard) => {
+    console.log('[Dashboards] Rendering card:', {
+      cardId: card.id,
+      cardType: card.type,
+      cardTitle: card.title,
+      entityId: card.entityId,
+      entityIds: card.entityIds,
+      config: card.config
+    });
+
     if (card.type === 'entity' && card.entityId) {
       const entity = entities.find(e => e.entity_id === card.entityId);
-      if (!entity) return null;
+      console.log('[Dashboards] Entity card - entityId:', card.entityId, 'found:', !!entity);
+      if (!entity) {
+        console.warn('[Dashboards] Entity not found for card:', card.id, 'entityId:', card.entityId);
+        return null;
+      }
 
       const isControllable = entity.entity_id.startsWith('light.') ||
                             entity.entity_id.startsWith('switch.');
@@ -313,7 +356,9 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
     }
 
     if (card.type === 'entities-group' && card.entityIds) {
+      console.log('[Dashboards] Entities group card - entityIds:', card.entityIds);
       const groupEntities = entities.filter(e => card.entityIds?.includes(e.entity_id));
+      console.log('[Dashboards] Found', groupEntities.length, 'entities for group');
 
       return (
         <Card key={card.id} className="relative">
@@ -365,8 +410,12 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
     }
 
     if (card.type === 'gauge' && card.entityId) {
+      console.log('[Dashboards] Gauge card - entityId:', card.entityId);
       const entity = entities.find(e => e.entity_id === card.entityId);
-      if (!entity) return null;
+      if (!entity) {
+        console.warn('[Dashboards] Entity not found for gauge card:', card.entityId);
+        return null;
+      }
 
       const value = parseFloat(entity.state) || 0;
       const maxValue = card.config?.max || 100;
@@ -410,8 +459,12 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
     }
 
     if (card.type === 'history-graph' && card.entityId) {
+      console.log('[Dashboards] History graph card - entityId:', card.entityId);
       const entity = entities.find(e => e.entity_id === card.entityId);
-      if (!entity) return null;
+      if (!entity) {
+        console.warn('[Dashboards] Entity not found for history graph:', card.entityId);
+        return null;
+      }
 
       return (
         <Card key={card.id} className="relative col-span-2">
@@ -444,8 +497,12 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
     }
 
     if (card.type === 'sensor' && card.entityId) {
+      console.log('[Dashboards] Sensor card - entityId:', card.entityId);
       const entity = entities.find(e => e.entity_id === card.entityId);
-      if (!entity) return null;
+      if (!entity) {
+        console.warn('[Dashboards] Entity not found for sensor card:', card.entityId);
+        return null;
+      }
 
       return (
         <Card key={card.id} className="relative">
@@ -476,6 +533,7 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
     }
 
     if (card.type === 'button' && card.entityId) {
+      console.log('[Dashboards] Button card - entityId:', card.entityId);
       return (
         <Card key={card.id} className="relative">
           {editMode && (
@@ -497,6 +555,7 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
       );
     }
 
+    console.warn('[Dashboards] Unknown or unsupported card type:', card.type);
     return null;
   };
 

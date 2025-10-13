@@ -53,16 +53,21 @@ export function SmartDashboard() {
   }, []);
 
   const loadData = async () => {
+    console.log('[SmartDashboard] Loading data...');
     setLoading(true);
     try {
       // Load entities
       if (homeAssistantService.isConnected()) {
         const entitiesData = await homeAssistantService.getEntities();
+        console.log('[SmartDashboard] Loaded', entitiesData.length, 'entities');
         setEntities(entitiesData);
+      } else {
+        console.log('[SmartDashboard] Home Assistant not connected');
       }
 
       // Load dashboards
       const saved = await dbService.getPreference('smart_dashboards');
+      console.log('[SmartDashboard] Loaded from DB:', saved);
       if (saved && Array.isArray(saved)) {
         const dashboardsWithDates = saved.map((d: any) => ({
           ...d,
@@ -70,11 +75,17 @@ export function SmartDashboard() {
           updated_at: new Date(d.updated_at),
           cards: d.cards || []
         }));
+        console.log('[SmartDashboard] Processed dashboards:', dashboardsWithDates.length, 'total');
+        dashboardsWithDates.forEach(d => {
+          console.log('[SmartDashboard] Dashboard:', d.name, 'cards:', d.cards.length);
+        });
         setDashboards(dashboardsWithDates);
         if (dashboardsWithDates.length > 0 && !activeDashboardId) {
           setActiveDashboardId(dashboardsWithDates[0].id);
+          console.log('[SmartDashboard] Set active dashboard to:', dashboardsWithDates[0].id);
         }
       } else {
+        console.log('[SmartDashboard] No saved dashboards, creating default');
         const defaultDashboard: SmartDashboardConfig = {
           id: 'default',
           name: 'Main Dashboard',
@@ -137,6 +148,14 @@ export function SmartDashboard() {
   };
 
   const addCard = async () => {
+    console.log('[SmartDashboard] Adding card:', {
+      type: newCardType,
+      title: newCardTitle,
+      entityId: newCardEntityId,
+      entityIds: newCardEntityIds,
+      displayMode: newCardDisplayMode
+    });
+
     if (!newCardTitle.trim()) {
       alert('Please enter a card title');
       return;
@@ -148,7 +167,10 @@ export function SmartDashboard() {
     }
 
     const dashboard = dashboards.find(d => d.id === activeDashboardId);
-    if (!dashboard) return;
+    if (!dashboard) {
+      console.error('[SmartDashboard] Dashboard not found:', activeDashboardId);
+      return;
+    }
 
     const newCard: SmartCard = {
       id: Date.now().toString(),
@@ -160,12 +182,18 @@ export function SmartDashboard() {
       displayMode: newCardDisplayMode
     };
 
+    console.log('[SmartDashboard] New card created:', newCard);
+
     dashboard.cards.push(newCard);
     dashboard.updated_at = new Date();
+
+    console.log('[SmartDashboard] Dashboard now has', dashboard.cards.length, 'cards');
 
     const updated = dashboards.map(d => d.id === dashboard.id ? dashboard : d);
     setDashboards(updated);
     await saveDashboards(updated);
+
+    console.log('[SmartDashboard] Card added and saved successfully');
 
     setShowAddCard(false);
     setNewCardTitle('');
@@ -216,8 +244,13 @@ export function SmartDashboard() {
   };
 
   const removeCard = async (cardId: string) => {
+    console.log('[SmartDashboard] Removing card:', cardId);
+
     const dashboard = dashboards.find(d => d.id === activeDashboardId);
-    if (!dashboard) return;
+    if (!dashboard) {
+      console.error('[SmartDashboard] Dashboard not found for card removal:', activeDashboardId);
+      return;
+    }
 
     dashboard.cards = dashboard.cards.filter(c => c.id !== cardId);
     dashboard.updated_at = new Date();
@@ -249,9 +282,23 @@ export function SmartDashboard() {
   };
 
   const renderCard = (card: SmartCard) => {
+    console.log('[SmartDashboard] Rendering card:', {
+      cardId: card.id,
+      cardType: card.type,
+      cardTitle: card.title,
+      entityId: card.entityId,
+      entityIds: card.entityIds,
+      config: card.config
+    });
+
     if (card.type === 'entity' && card.entityId) {
+      console.log('[SmartDashboard] Entity card - entityId:', card.entityId);
       const entity = entities.find(e => e.entity_id === card.entityId);
-      if (!entity) return null;
+      console.log('[SmartDashboard] Entity found:', !!entity);
+      if (!entity) {
+        console.warn('[SmartDashboard] Entity not found for card:', card.id, 'entityId:', card.entityId);
+        return null;
+      }
 
       const isControllable = entity.entity_id.startsWith('light.') || entity.entity_id.startsWith('switch.');
 
@@ -319,7 +366,9 @@ export function SmartDashboard() {
     }
 
     if (card.type === 'energy-flow' && card.entityIds) {
+      console.log('[SmartDashboard] Energy flow card - entityIds:', card.entityIds);
       const energyEntities = entities.filter(e => card.entityIds?.includes(e.entity_id));
+      console.log('[SmartDashboard] Found', energyEntities.length, 'energy entities');
 
       return (
         <Card key={card.id} className="relative col-span-2">
@@ -354,9 +403,11 @@ export function SmartDashboard() {
     }
 
     if (card.type === 'stats') {
+      console.log('[SmartDashboard] Stats card - calculating device statistics');
       const lightsOn = entities.filter(e => e.entity_id.startsWith('light.') && e.state === 'on').length;
       const switchesOn = entities.filter(e => e.entity_id.startsWith('switch.') && e.state === 'on').length;
       const totalDevices = entities.filter(e => e.entity_id.startsWith('light.') || e.entity_id.startsWith('switch.')).length;
+      console.log('[SmartDashboard] Stats:', { lightsOn, switchesOn, totalDevices });
 
       return (
         <Card key={card.id} className="relative">
@@ -398,8 +449,12 @@ export function SmartDashboard() {
     }
 
     if (card.type === 'gauge' && card.entityId) {
+      console.log('[SmartDashboard] Gauge card - entityId:', card.entityId);
       const entity = entities.find(e => e.entity_id === card.entityId);
-      if (!entity) return null;
+      if (!entity) {
+        console.warn('[SmartDashboard] Entity not found for gauge card:', card.entityId);
+        return null;
+      }
 
       const value = parseFloat(entity.state) || 0;
       const maxValue = card.config?.max || 100;
@@ -438,8 +493,12 @@ export function SmartDashboard() {
     }
 
     if (card.type === 'history-graph' && card.entityId) {
+      console.log('[SmartDashboard] History graph card - entityId:', card.entityId);
       const entity = entities.find(e => e.entity_id === card.entityId);
-      if (!entity) return null;
+      if (!entity) {
+        console.warn('[SmartDashboard] Entity not found for history graph:', card.entityId);
+        return null;
+      }
 
       return (
         <Card key={card.id} className="relative col-span-2">
@@ -472,8 +531,12 @@ export function SmartDashboard() {
     }
 
     if (card.type === 'sensor' && card.entityId) {
+      console.log('[SmartDashboard] Sensor card - entityId:', card.entityId);
       const entity = entities.find(e => e.entity_id === card.entityId);
-      if (!entity) return null;
+      if (!entity) {
+        console.warn('[SmartDashboard] Entity not found for sensor card:', card.entityId);
+        return null;
+      }
 
       return (
         <Card key={card.id} className="relative">
@@ -499,6 +562,7 @@ export function SmartDashboard() {
     }
 
     if (card.type === 'button' && card.entityId) {
+      console.log('[SmartDashboard] Button card - entityId:', card.entityId);
       return (
         <Card key={card.id} className="relative">
           {editMode && (
@@ -515,6 +579,7 @@ export function SmartDashboard() {
       );
     }
 
+    console.warn('[SmartDashboard] Unknown or unsupported card type:', card.type);
     return null;
   };
 
