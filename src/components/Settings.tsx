@@ -6,6 +6,7 @@ import { Switch } from './ui/Switch';
 import { HomeAssistantConfig } from '../types/homeAssistant';
 import { homeAssistantService } from '../services/homeAssistant';
 import { energyPricingService } from '../services/energyPricingService';
+import { dbService } from '../services/database';
 import {
   Settings as SettingsIcon,
   Home,
@@ -95,6 +96,7 @@ export const Settings: React.FC<SettingsProps> = ({ onConnectionChange }) => {
     loadPricing();
 
     const unsubscribe = energyPricingService.onPriceUpdate((pricing) => {
+      console.log('[Settings] Price update received:', pricing);
       setPreferences(prev => ({
         ...prev,
         generalPrice: pricing.general_price,
@@ -103,6 +105,38 @@ export const Settings: React.FC<SettingsProps> = ({ onConnectionChange }) => {
       }));
       setLastPriceUpdate(new Date(pricing.last_updated || Date.now()).toLocaleString());
     });
+
+    const supabase = dbService.getClient();
+    if (supabase) {
+      const channel = supabase
+        .channel('pricing_updates')
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'energy_pricing'
+          },
+          (payload: any) => {
+            console.log('[Settings] Realtime pricing update:', payload);
+            setPreferences(prev => ({
+              ...prev,
+              generalPrice: Number(payload.new.general_price),
+              feedInTariff: Number(payload.new.feed_in_tariff),
+              currency: payload.new.currency || 'USD'
+            }));
+            if (payload.new.last_updated) {
+              setLastPriceUpdate(new Date(payload.new.last_updated).toLocaleString());
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        unsubscribe();
+        supabase.removeChannel(channel);
+      };
+    }
 
     return () => unsubscribe();
   }, []);

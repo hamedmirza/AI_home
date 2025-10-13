@@ -17,6 +17,7 @@ interface Message {
   isUser: boolean;
   timestamp: Date;
   feedback?: 'up' | 'down' | null;
+  responseTime?: number;
 }
 
 const SESSION_ID = 'main-session';
@@ -31,15 +32,26 @@ export function FloatingChat({ isConnected, onEntityUpdate }: FloatingChatProps)
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const loadedRef = useRef(false);
 
-  const scrollToBottom = () => {
+  const scrollToBottom = (force: boolean = false) => {
     setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
+      if (force) {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
+      } else {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }
+    }, 150);
   };
 
   useEffect(() => {
-    scrollToBottom();
+    scrollToBottom(false);
   }, [messages, isLoading]);
+
+  useEffect(() => {
+    if (isOpen && messages.length > 0) {
+      scrollToBottom(true);
+      setUnreadCount(0);
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isConnected) {
@@ -66,9 +78,12 @@ export function FloatingChat({ isConnected, onEntityUpdate }: FloatingChatProps)
           isUser: msg.role === 'user',
           timestamp: new Date(msg.created_at),
           feedback: msg.metadata?.feedback || null,
+          responseTime: msg.metadata?.responseTime || undefined,
         }));
 
         setMessages(loadedMessages);
+
+        setTimeout(() => scrollToBottom(true), 300);
       } catch (error) {
         console.error('[FloatingChat] Error loading chat history:', error);
         setMessages([]);
@@ -155,6 +170,8 @@ export function FloatingChat({ isConnected, onEntityUpdate }: FloatingChatProps)
     setInputText('');
     setIsLoading(true);
 
+    const startTime = performance.now();
+
     try {
       await dbService.addChatMessage(SESSION_ID, 'user', userMessageContent);
 
@@ -173,7 +190,10 @@ export function FloatingChat({ isConnected, onEntityUpdate }: FloatingChatProps)
 
       const response = await homeAssistantService.processAICommand(userMessageContent, entities);
 
-      await dbService.addChatMessage(SESSION_ID, 'assistant', response);
+      const endTime = performance.now();
+      const responseTime = Math.round(endTime - startTime);
+
+      await dbService.addChatMessage(SESSION_ID, 'assistant', response, { responseTime });
 
       if (onEntityUpdate && (userMessageContent.toLowerCase().includes('turn on') ||
           userMessageContent.toLowerCase().includes('turn off') ||
@@ -288,11 +308,20 @@ export function FloatingChat({ isConnected, onEntityUpdate }: FloatingChatProps)
                             : 'bg-white border border-gray-200 shadow-sm'
                         }`}>
                           <p className="text-sm whitespace-pre-wrap">{message.text}</p>
-                          <p className={`text-xs mt-1 ${
+                          <div className={`flex items-center justify-between text-xs mt-1 ${
                             message.isUser ? 'text-blue-100' : 'text-gray-500'
                           }`}>
-                            {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </p>
+                            <span>
+                              {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                            {!message.isUser && message.responseTime && (
+                              <span className="ml-2 text-green-600 font-medium">
+                                {message.responseTime < 1000
+                                  ? `${message.responseTime}ms`
+                                  : `${(message.responseTime / 1000).toFixed(1)}s`}
+                              </span>
+                            )}
+                          </div>
                         </div>
                         {!message.isUser && (
                           <div className="flex items-center space-x-1 mt-1">
