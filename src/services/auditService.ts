@@ -161,6 +161,8 @@ class AuditService {
 
   async getSuggestions(status?: string): Promise<AISuggestion[]> {
     try {
+      console.log('[AuditService] Fetching suggestions with status:', status);
+
       let query = supabase
         .from('ai_suggestions')
         .select('*')
@@ -172,10 +174,15 @@ class AuditService {
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('[AuditService] Error fetching suggestions:', error);
+        throw error;
+      }
+
+      console.log('[AuditService] Fetched suggestions:', data?.length || 0, 'items');
       return data || [];
     } catch (error) {
-      console.error('Failed to fetch suggestions:', error);
+      console.error('[AuditService] Failed to fetch suggestions:', error);
       return [];
     }
   }

@@ -25,32 +25,41 @@ export function AISuggestions({ entities }: AISuggestionsProps) {
   }, [filter]);
 
   const loadSuggestions = async () => {
+    console.log('[AISuggestions] Loading suggestions with filter:', filter);
     setLoading(true);
     try {
       const status = filter === 'all' ? undefined : filter;
       const data = await auditService.getSuggestions(status);
+      console.log('[AISuggestions] Loaded suggestions:', data.length, 'items');
       setSuggestions(data);
     } catch (error) {
-      console.error('Failed to load suggestions:', error);
+      console.error('[AISuggestions] Failed to load suggestions:', error);
     } finally {
       setLoading(false);
     }
   };
 
   const generateSuggestions = async () => {
+    console.log('[AISuggestions] Starting suggestion generation...');
+    console.log('[AISuggestions] Available entities:', entities.length);
+
     setGenerating(true);
     try {
       const actionLogs = await auditService.getActionLogs(100);
+      console.log('[AISuggestions] Retrieved action logs:', actionLogs.length);
+
       const newSuggestions = await auditService.generateSmartSuggestions(entities, actionLogs);
+      console.log('[AISuggestions] Generated suggestions:', newSuggestions.length);
 
       for (const suggestion of newSuggestions) {
+        console.log('[AISuggestions] Creating suggestion:', suggestion.title);
         await auditService.createSuggestion(suggestion);
       }
 
       await loadSuggestions();
       alert(`Generated ${newSuggestions.length} new suggestions!`);
     } catch (error) {
-      console.error('Failed to generate suggestions:', error);
+      console.error('[AISuggestions] Failed to generate suggestions:', error);
       alert('Failed to generate suggestions');
     } finally {
       setGenerating(false);
