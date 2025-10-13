@@ -373,12 +373,20 @@ export function SmartDashboard() {
       return (
         <Card key={card.id} className="relative col-span-2">
           {editMode && (
-            <button
-              onClick={() => removeCard(card.id)}
-              className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded hover:bg-red-600 z-10"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <div className="absolute top-2 right-2 flex gap-1 z-10">
+              <button
+                onClick={() => startEditCard(card)}
+                className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                <Edit3 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => removeCard(card.id)}
+                className="p-1 bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           )}
           <div className="p-6">
             <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
@@ -456,14 +464,19 @@ export function SmartDashboard() {
         return (
           <Card key={card.id} className="relative">
             {editMode && (
-              <button onClick={() => removeCard(card.id)} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded hover:bg-red-600 z-10">
-                <X className="w-4 h-4" />
-              </button>
+              <div className="absolute top-2 right-2 flex gap-1 z-10">
+                <button onClick={() => startEditCard(card)} className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+                  <Edit3 className="w-4 h-4" />
+                </button>
+                <button onClick={() => removeCard(card.id)} className="p-1 bg-red-500 text-white rounded hover:bg-red-600">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             )}
             <div className="p-6">
               <h3 className="font-semibold text-gray-900 dark:text-white mb-4">{card.title}</h3>
               <div className="text-center text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400 p-4 rounded">
-                ⚠️ No entity selected. {editMode ? 'Remove this card.' : 'Enable edit mode to configure.'}
+                ⚠️ No entity selected. {editMode ? 'Click Edit to configure.' : 'Enable edit mode to configure.'}
               </div>
             </div>
           </Card>
@@ -483,9 +496,14 @@ export function SmartDashboard() {
       return (
         <Card key={card.id} className="relative">
           {editMode && (
-            <button onClick={() => removeCard(card.id)} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded hover:bg-red-600 z-10">
-              <X className="w-4 h-4" />
-            </button>
+            <div className="absolute top-2 right-2 flex gap-1 z-10">
+              <button onClick={() => startEditCard(card)} className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+                <Edit3 className="w-4 h-4" />
+              </button>
+              <button onClick={() => removeCard(card.id)} className="p-1 bg-red-500 text-white rounded hover:bg-red-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           )}
           <div className="p-6">
             <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
@@ -520,14 +538,19 @@ export function SmartDashboard() {
         return (
           <Card key={card.id} className="relative col-span-2">
             {editMode && (
-              <button onClick={() => removeCard(card.id)} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded hover:bg-red-600 z-10">
-                <X className="w-4 h-4" />
-              </button>
+              <div className="absolute top-2 right-2 flex gap-1 z-10">
+                <button onClick={() => startEditCard(card)} className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+                  <Edit3 className="w-4 h-4" />
+                </button>
+                <button onClick={() => removeCard(card.id)} className="p-1 bg-red-500 text-white rounded hover:bg-red-600">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             )}
             <div className="p-6">
               <h3 className="font-semibold text-gray-900 dark:text-white mb-4">{card.title}</h3>
               <div className="text-center text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400 p-4 rounded">
-                ⚠️ No entity selected. {editMode ? 'Remove this card.' : 'Enable edit mode to configure.'}
+                ⚠️ No entity selected. {editMode ? 'Click Edit to configure.' : 'Enable edit mode to configure.'}
               </div>
             </div>
           </Card>
@@ -543,9 +566,14 @@ export function SmartDashboard() {
       return (
         <Card key={card.id} className="relative col-span-2">
           {editMode && (
-            <button onClick={() => removeCard(card.id)} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded hover:bg-red-600 z-10">
-              <X className="w-4 h-4" />
-            </button>
+            <div className="absolute top-2 right-2 flex gap-1 z-10">
+              <button onClick={() => startEditCard(card)} className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+                <Edit3 className="w-4 h-4" />
+              </button>
+              <button onClick={() => removeCard(card.id)} className="p-1 bg-red-500 text-white rounded hover:bg-red-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           )}
           <div className="p-6">
             <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
@@ -578,14 +606,19 @@ export function SmartDashboard() {
         return (
           <Card key={card.id} className="relative">
             {editMode && (
-              <button onClick={() => removeCard(card.id)} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded hover:bg-red-600 z-10">
-                <X className="w-4 h-4" />
-              </button>
+              <div className="absolute top-2 right-2 flex gap-1 z-10">
+                <button onClick={() => startEditCard(card)} className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+                  <Edit3 className="w-4 h-4" />
+                </button>
+                <button onClick={() => removeCard(card.id)} className="p-1 bg-red-500 text-white rounded hover:bg-red-600">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             )}
             <div className="p-6">
               <h3 className="font-semibold text-gray-900 dark:text-white mb-4">{card.title}</h3>
               <div className="text-center text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400 p-4 rounded">
-                ⚠️ No entity selected. {editMode ? 'Remove this card.' : 'Enable edit mode to configure.'}
+                ⚠️ No entity selected. {editMode ? 'Click Edit to configure.' : 'Enable edit mode to configure.'}
               </div>
             </div>
           </Card>
@@ -601,9 +634,14 @@ export function SmartDashboard() {
       return (
         <Card key={card.id} className="relative">
           {editMode && (
-            <button onClick={() => removeCard(card.id)} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded hover:bg-red-600 z-10">
-              <X className="w-4 h-4" />
-            </button>
+            <div className="absolute top-2 right-2 flex gap-1 z-10">
+              <button onClick={() => startEditCard(card)} className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+                <Edit3 className="w-4 h-4" />
+              </button>
+              <button onClick={() => removeCard(card.id)} className="p-1 bg-red-500 text-white rounded hover:bg-red-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           )}
           <div className="p-6">
             <h3 className="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
@@ -629,14 +667,19 @@ export function SmartDashboard() {
         return (
           <Card key={card.id} className="relative">
             {editMode && (
-              <button onClick={() => removeCard(card.id)} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded hover:bg-red-600 z-10">
-                <X className="w-4 h-4" />
-              </button>
+              <div className="absolute top-2 right-2 flex gap-1 z-10">
+                <button onClick={() => startEditCard(card)} className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+                  <Edit3 className="w-4 h-4" />
+                </button>
+                <button onClick={() => removeCard(card.id)} className="p-1 bg-red-500 text-white rounded hover:bg-red-600">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             )}
             <div className="p-6">
               <h3 className="font-semibold text-gray-900 dark:text-white mb-4">{card.title}</h3>
               <div className="text-center text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400 p-4 rounded">
-                ⚠️ No entity selected. {editMode ? 'Remove this card.' : 'Enable edit mode to configure.'}
+                ⚠️ No entity selected. {editMode ? 'Click Edit to configure.' : 'Enable edit mode to configure.'}
               </div>
             </div>
           </Card>
@@ -646,9 +689,14 @@ export function SmartDashboard() {
       return (
         <Card key={card.id} className="relative">
           {editMode && (
-            <button onClick={() => removeCard(card.id)} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded hover:bg-red-600 z-10">
-              <X className="w-4 h-4" />
-            </button>
+            <div className="absolute top-2 right-2 flex gap-1 z-10">
+              <button onClick={() => startEditCard(card)} className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+                <Edit3 className="w-4 h-4" />
+              </button>
+              <button onClick={() => removeCard(card.id)} className="p-1 bg-red-500 text-white rounded hover:bg-red-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           )}
           <div className="p-6 flex items-center justify-center">
             <Button onClick={() => handleEntityToggle(card.entityId!)} className="w-full py-8">
