@@ -67,15 +67,30 @@ class UnifiedAIService {
 
     try {
       // Get entities and context via MCP
+      const mcpStart = performance.now();
       const entities = await mcpService.getEntities();
+      const mcpEntitiesTime = performance.now() - mcpStart;
+      console.log(`[UnifiedAI] ✓ MCP getEntities: ${mcpEntitiesTime.toFixed(0)}ms`);
+
+      const contextStart = performance.now();
       const aiContext = await mcpService.getAIContext();
+      const mcpContextTime = performance.now() - contextStart;
+      console.log(`[UnifiedAI] ✓ MCP getAIContext: ${mcpContextTime.toFixed(0)}ms`);
+
+      const patternsStart = performance.now();
       const learnedPatterns = await this.getLearnedPatterns();
+      const patternsTime = performance.now() - patternsStart;
+      console.log(`[UnifiedAI] ✓ Get learned patterns: ${patternsTime.toFixed(0)}ms`);
 
       // Build enhanced context
       const context = await this.buildContext(userMessage, entities, aiContext, learnedPatterns);
+      console.log(`[UnifiedAI] ✓ Total MCP+DB time: ${(mcpEntitiesTime + mcpContextTime + patternsTime).toFixed(0)}ms`);
 
       // Get AI response with structured action format
+      const aiStart = performance.now();
       const aiResponse = await this.callAI(userMessage, context);
+      const aiTime = performance.now() - aiStart;
+      console.log(`[UnifiedAI] ✓ AI provider response: ${aiTime.toFixed(0)}ms`);
 
       // Parse and execute actions if any
       if (aiResponse.actions && aiResponse.actions.length > 0) {
