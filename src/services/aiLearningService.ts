@@ -194,7 +194,9 @@ class AILearningService {
               { role: 'user', content: userMessage }
             ],
             temperature: 0.7,
-            max_tokens: 500
+            max_tokens: 500,
+            repeat_penalty: 1.1,
+            top_p: 0.9
           };
 
           console.log(`[AI] Sending to LM Studio:`, {
@@ -282,8 +284,8 @@ class AILearningService {
 
     if (recentConversations.length > 0) {
       prompt += `\n\nRecent Context:`;
-      recentConversations.slice(0, 3).forEach((msg: Message) => {
-        prompt += `\n${msg.role}: ${msg.content.substring(0, 100)}`;
+      recentConversations.slice(0, 2).forEach((msg: Message) => {
+        prompt += `\n${msg.role}: ${msg.content.substring(0, 80)}`;
       });
     }
 
@@ -302,7 +304,7 @@ class AILearningService {
   }
 
   private async buildContext(userMessage: string, entities: any[], patterns: LearnedPattern[]) {
-    const recentMessages = await this.getRecentMessages(10);
+    const recentMessages = await this.getRecentMessages(3);
     const entityContext = await aiContextService.buildSmartAIContext(entities, userMessage);
 
     const relevantPatterns = patterns.filter(p =>
