@@ -245,7 +245,7 @@ const automations = await mcpService.getAutomations();
 const energy = await mcpService.getEnergy();
 ```
 
-## Phase 2: Actions (Active)
+## Phase 2: Actions ✅ (Active)
 
 ### `home/call_service` - Execute Home Assistant Service Calls
 
@@ -397,13 +397,38 @@ Phase 2 implements a strict allowlist of safe services:
 }
 ```
 
-## Phase 3: Audit & Traces (Planned)
+## Phase 3: Audit & Traces 📋 (Planned)
 
-Phase 3 will add comprehensive logging:
-- Tool call logging with reasoning
-- Audit trail for all AI actions
-- Rollback capabilities
-- Historical analysis
+Phase 3 will add comprehensive logging and audit capabilities:
+
+### Planned Features
+
+**Action Logging:**
+- Record all AI-initiated actions with timestamps
+- Store reasoning and context for each action
+- Link actions to user sessions and conversations
+
+**Audit Trail:**
+- Complete history of all device state changes
+- Who/what triggered each action (user, automation, AI)
+- Before/after states for rollback
+
+**Rollback Capabilities:**
+- Undo last N actions
+- Restore previous states
+- Time-based state recovery
+
+**Analytics:**
+- Action frequency and patterns
+- Success/failure rates
+- Response time metrics
+- Cost analysis for AI operations
+
+### Implementation Status
+- 🔄 Database schema design in progress
+- 📋 Action logging service planned
+- 📋 Rollback mechanism planned
+- 📋 Admin audit interface planned
 
 ## Error Handling
 
@@ -460,6 +485,28 @@ curl -X POST \
 
 ## Roadmap
 
-- ✅ **Phase 1**: Read-only tools (deployed)
-- ✅ **Phase 2**: Service calls with allowlist (deployed)
-- 📋 **Phase 3**: Audit trails and rollback (planned)
+### Completed
+- ✅ **Phase 1**: Read-only tools - DEPLOYED
+  - All read endpoints functional
+  - AI context optimization
+  - Energy data aggregation
+
+- ✅ **Phase 2**: Service calls with allowlist - DEPLOYED
+  - 40+ allowed services across all major domains
+  - Allowlist enforcement with clear error messages
+  - Parameter validation
+  - Full integration with AI assistant
+
+### In Progress
+- 🔄 **AI Learning System** - ACTIVE
+  - Entity alias learning from interactions
+  - Command pattern recognition
+  - Confidence scoring and usage tracking
+  - Pattern-based context enhancement
+
+### Planned
+- 📋 **Phase 3**: Audit trails and rollback
+  - Action logging with reasoning
+  - Complete audit trail
+  - Rollback capabilities
+  - Historical analysis and reporting
