@@ -291,7 +291,7 @@ class AILearningService {
 
   private async buildContext(userMessage: string, entities: any[], patterns: LearnedPattern[]) {
     const recentMessages = await this.getRecentMessages(10);
-    const entityContext = await aiContextService.buildCompleteAIContext(entities);
+    const entityContext = await aiContextService.buildSmartAIContext(entities, userMessage);
 
     const relevantPatterns = patterns.filter(p =>
       userMessage.toLowerCase().includes(p.pattern_key.toLowerCase()) ||
