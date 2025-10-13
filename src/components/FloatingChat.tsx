@@ -2,9 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Loader2, MessageCircle, X, Minimize2, Maximize2, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
-import { homeAssistantService } from '../services/homeAssistant';
+import { unifiedAIService } from '../services/unifiedAIService';
 import { dbService } from '../services/database';
-import { syncService } from '../services/syncService';
 
 interface FloatingChatProps {
   isConnected: boolean;
@@ -177,37 +176,23 @@ export function FloatingChat({ isConnected, onEntityUpdate }: FloatingChatProps)
     try {
       await dbService.addChatMessage(SESSION_ID, 'user', userMessageContent);
 
-      let entities = [];
-      try {
-        const cachedEntities = await syncService.getEntityFromCache('');
-        if (cachedEntities) {
-          entities = await dbService.getEntities();
-        } else {
-          entities = await homeAssistantService.getEntities();
-        }
-      } catch (error) {
-        console.warn('Could not fetch entities for AI context:', error);
-        entities = await homeAssistantService.getEntities();
-      }
-
-      const aiResponse = await homeAssistantService.processAICommand(userMessageContent, entities);
+      const aiResponse = await unifiedAIService.processCommand(userMessageContent);
 
       const endTime = performance.now();
       const responseTime = Math.round(endTime - startTime);
 
       console.log('[FloatingChat] Response time:', responseTime, 'ms');
       console.log('[FloatingChat] Token usage:', aiResponse.tokenUsage);
+      console.log('[FloatingChat] Actions executed:', aiResponse.actions?.length || 0);
 
       await dbService.addChatMessage(SESSION_ID, 'assistant', aiResponse.text, {
         responseTime,
         tokenUsage: aiResponse.tokenUsage,
-        provider: aiResponse.provider
+        provider: aiResponse.provider,
+        actions: aiResponse.actions
       });
 
-      if (onEntityUpdate && (userMessageContent.toLowerCase().includes('turn on') ||
-          userMessageContent.toLowerCase().includes('turn off') ||
-          userMessageContent.toLowerCase().includes('set') ||
-          userMessageContent.toLowerCase().includes('toggle'))) {
+      if (onEntityUpdate && aiResponse.actions && aiResponse.actions.length > 0) {
         setTimeout(() => onEntityUpdate?.(), 1500);
       }
     } catch (error) {
