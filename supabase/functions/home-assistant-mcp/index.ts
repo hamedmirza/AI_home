@@ -172,9 +172,45 @@ async function getServices(config: HomeAssistantConfig): Promise<unknown> {
 
 async function getEnergy(config: HomeAssistantConfig): Promise<unknown> {
   try {
+    // Try the official energy API first
     return await fetchFromHA(config, "/energy/summary");
   } catch {
-    return await fetchFromHA(config, "/energy");
+    try {
+      return await fetchFromHA(config, "/energy");
+    } catch {
+      // Fallback: gather energy-related sensors manually
+      const states = await fetchFromHA(config, "/states") as Array<{
+        entity_id: string;
+        state: string;
+        attributes: Record<string, unknown>;
+        last_updated: string;
+      }>;
+
+      const energySensors = states.filter(s =>
+        s.entity_id.startsWith("sensor.") && (
+          s.attributes.device_class === "energy" ||
+          s.attributes.device_class === "power" ||
+          s.entity_id.includes("energy") ||
+          s.entity_id.includes("power") ||
+          s.entity_id.includes("solar") ||
+          s.entity_id.includes("battery") ||
+          s.entity_id.includes("grid")
+        )
+      );
+
+      return {
+        message: "Energy dashboard not configured in Home Assistant. Showing energy-related sensors.",
+        sensors: energySensors.map(s => ({
+          entity_id: s.entity_id,
+          state: s.state,
+          unit: s.attributes.unit_of_measurement,
+          friendly_name: s.attributes.friendly_name || s.entity_id,
+          device_class: s.attributes.device_class,
+          last_updated: s.last_updated,
+        })),
+        total_sensors: energySensors.length,
+      };
+    }
   }
 }
 
