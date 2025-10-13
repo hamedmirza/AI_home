@@ -12,14 +12,18 @@ interface TestResult {
   duration?: number;
 }
 
-const MCP_METHODS = [
-  { name: 'home/ai_context', label: 'AI Context (Recommended)', description: 'Consolidated smart home context' },
-  { name: 'home/entities', label: 'Entities', description: 'List all entities' },
-  { name: 'home/states', label: 'States', description: 'Get all entity states' },
-  { name: 'home/automations', label: 'Automations', description: 'List automations' },
-  { name: 'home/scripts', label: 'Scripts', description: 'List scripts' },
-  { name: 'home/services', label: 'Services', description: 'Available services' },
-  { name: 'home/energy', label: 'Energy', description: 'Energy data' },
+const MCP_READ_METHODS = [
+  { name: 'home/ai_context', label: 'AI Context', description: 'Phase 1: Consolidated smart home context' },
+  { name: 'home/entities', label: 'Entities', description: 'Phase 1: List all entities' },
+  { name: 'home/states', label: 'States', description: 'Phase 1: Get all entity states' },
+  { name: 'home/automations', label: 'Automations', description: 'Phase 1: List automations' },
+  { name: 'home/scripts', label: 'Scripts', description: 'Phase 1: List scripts' },
+  { name: 'home/services', label: 'Services', description: 'Phase 1: Available services' },
+  { name: 'home/energy', label: 'Energy', description: 'Phase 1: Energy data' },
+];
+
+const MCP_WRITE_METHODS = [
+  { name: 'call_service_test', label: 'Test Service Call', description: 'Phase 2: Call a safe test service' },
 ];
 
 export function MCPTest() {
@@ -59,6 +63,19 @@ export function MCPTest() {
         case 'home/energy':
           data = await mcpService.getEnergy();
           break;
+        case 'call_service_test':
+          const entities: any = await mcpService.getEntities();
+          const testLight = entities.find((e: any) => e.entity_id.startsWith('light.'));
+          if (testLight) {
+            data = await mcpService.callService({
+              domain: 'light',
+              service: 'toggle',
+              entity_id: testLight.entity_id,
+            });
+          } else {
+            throw new Error('No light entities found for testing');
+          }
+          break;
         default:
           throw new Error('Unknown method');
       }
@@ -94,7 +111,7 @@ export function MCPTest() {
     setIsTestingAll(true);
     setResults({});
 
-    for (const method of MCP_METHODS) {
+    for (const method of MCP_READ_METHODS) {
       await testMethod(method.name);
       await new Promise(resolve => setTimeout(resolve, 500));
     }
@@ -160,8 +177,9 @@ export function MCPTest() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {MCP_METHODS.map((method) => {
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Phase 1: Read Operations</h3>
+          <div className="space-y-3 mb-8">
+            {MCP_READ_METHODS.map((method) => {
               const result = results[method.name];
 
               return (
@@ -192,6 +210,74 @@ export function MCPTest() {
                                 : typeof result.data === 'object' && result.data
                                 ? `${Object.keys(result.data).length} properties`
                                 : 'Data received'}
+                            </span>
+                          </div>
+                        )}
+
+                        {result.status === 'error' && (
+                          <div className="flex items-start space-x-2 text-sm">
+                            <XCircle className="w-4 h-4 text-red-600 mt-0.5" />
+                            <div>
+                              <span className="text-red-700 font-medium">Error</span>
+                              <p className="text-red-600 text-xs mt-1">{result.error}</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {result.status === 'loading' && (
+                          <div className="flex items-center space-x-2 text-sm text-blue-600">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Testing...</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => testMethod(method.name)}
+                    disabled={result?.status === 'loading' || isTestingAll}
+                  >
+                    Test
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 mt-8">Phase 2: Write Operations</h3>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+            <p className="text-sm text-yellow-800">
+              <strong>Warning:</strong> These operations will modify your Home Assistant state. Only test with safe entities.
+            </p>
+          </div>
+          <div className="space-y-3">
+            {MCP_WRITE_METHODS.map((method) => {
+              const result = results[method.name];
+
+              return (
+                <div
+                  key={method.name}
+                  className="flex items-center justify-between p-4 border border-yellow-200 bg-yellow-50 rounded-lg hover:border-yellow-300 transition-colors"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3">
+                      <code className="text-sm font-mono bg-yellow-100 px-2 py-1 rounded">
+                        {method.name}
+                      </code>
+                      <span className="font-medium text-gray-900">{method.label}</span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1 ml-2">{method.description}</p>
+
+                    {result && (
+                      <div className="mt-2 ml-2">
+                        {result.status === 'success' && (
+                          <div className="flex items-center space-x-2 text-sm">
+                            <CheckCircle className="w-4 h-4 text-green-600" />
+                            <span className="text-green-700">
+                              Success ({result.duration}ms)
                             </span>
                           </div>
                         )}

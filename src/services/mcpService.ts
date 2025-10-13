@@ -98,6 +98,97 @@ class MCPService {
     return this.callMCP('home/ai_context');
   }
 
+  async callService(params: {
+    domain: string;
+    service: string;
+    entity_id?: string;
+    data?: Record<string, unknown>;
+  }) {
+    return this.callMCP('home/call_service', params);
+  }
+
+  async turnOnLight(entityId: string, data?: { brightness?: number; rgb_color?: number[] }) {
+    return this.callService({
+      domain: 'light',
+      service: 'turn_on',
+      entity_id: entityId,
+      data,
+    });
+  }
+
+  async turnOffLight(entityId: string) {
+    return this.callService({
+      domain: 'light',
+      service: 'turn_off',
+      entity_id: entityId,
+    });
+  }
+
+  async toggleLight(entityId: string) {
+    return this.callService({
+      domain: 'light',
+      service: 'toggle',
+      entity_id: entityId,
+    });
+  }
+
+  async turnOnSwitch(entityId: string) {
+    return this.callService({
+      domain: 'switch',
+      service: 'turn_on',
+      entity_id: entityId,
+    });
+  }
+
+  async turnOffSwitch(entityId: string) {
+    return this.callService({
+      domain: 'switch',
+      service: 'turn_off',
+      entity_id: entityId,
+    });
+  }
+
+  async toggleSwitch(entityId: string) {
+    return this.callService({
+      domain: 'switch',
+      service: 'toggle',
+      entity_id: entityId,
+    });
+  }
+
+  async setClimateTemperature(entityId: string, temperature: number) {
+    return this.callService({
+      domain: 'climate',
+      service: 'set_temperature',
+      entity_id: entityId,
+      data: { temperature },
+    });
+  }
+
+  async activateScene(entityId: string) {
+    return this.callService({
+      domain: 'scene',
+      service: 'turn_on',
+      entity_id: entityId,
+    });
+  }
+
+  async runScript(entityId: string) {
+    return this.callService({
+      domain: 'script',
+      service: 'turn_on',
+      entity_id: entityId,
+    });
+  }
+
+  async triggerAutomation(entityId: string) {
+    return this.callService({
+      domain: 'automation',
+      service: 'trigger',
+      entity_id: entityId,
+    });
+  }
+
   isAvailable(): boolean {
     const haConfig = localStorage.getItem('homeAssistantConfig');
     return haConfig !== null;

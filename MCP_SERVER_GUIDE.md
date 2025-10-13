@@ -245,12 +245,157 @@ const automations = await mcpService.getAutomations();
 const energy = await mcpService.getEnergy();
 ```
 
-## Phase 2: Actions (Coming Soon)
+## Phase 2: Actions (Active)
 
-Phase 2 will add controlled service calls:
-- `home/call_service` - Call Home Assistant services with allowlist
-- Policy enforcement (time-of-day, energy price, occupancy checks)
-- Rate limiting and safety constraints
+### `home/call_service` - Execute Home Assistant Service Calls
+
+Call Home Assistant services with strict allowlist enforcement.
+
+**Request:**
+```json
+{
+  "method": "home/call_service",
+  "params": {
+    "domain": "light",
+    "service": "turn_on",
+    "entity_id": "light.living_room",
+    "data": {
+      "brightness": 255,
+      "rgb_color": [255, 0, 0]
+    }
+  },
+  "ha_config": {
+    "url": "http://homeassistant.local:8123",
+    "token": "YOUR_TOKEN"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "result": {
+    "success": true,
+    "service": "light.turn_on",
+    "entity_id": "light.living_room",
+    "data": {
+      "brightness": 255,
+      "rgb_color": [255, 0, 0]
+    },
+    "result": [...]
+  }
+}
+```
+
+### Allowed Services
+
+Phase 2 implements a strict allowlist of safe services:
+
+**Lights:**
+- `light.turn_on`
+- `light.turn_off`
+- `light.toggle`
+
+**Switches:**
+- `switch.turn_on`
+- `switch.turn_off`
+- `switch.toggle`
+
+**Climate:**
+- `climate.set_temperature`
+- `climate.set_hvac_mode`
+- `climate.turn_on`
+- `climate.turn_off`
+
+**Covers:**
+- `cover.open_cover`
+- `cover.close_cover`
+- `cover.stop_cover`
+- `cover.set_cover_position`
+
+**Fans:**
+- `fan.turn_on`
+- `fan.turn_off`
+- `fan.toggle`
+- `fan.set_percentage`
+
+**Media Players:**
+- `media_player.turn_on`
+- `media_player.turn_off`
+- `media_player.toggle`
+- `media_player.volume_set`
+- `media_player.media_play`
+- `media_player.media_pause`
+- `media_player.media_stop`
+
+**Automation & Scripts:**
+- `scene.turn_on`
+- `script.turn_on`
+- `automation.trigger`
+- `automation.turn_on`
+- `automation.turn_off`
+
+**Helpers:**
+- `input_boolean.turn_on`
+- `input_boolean.turn_off`
+- `input_boolean.toggle`
+- `input_number.set_value`
+- `input_select.select_option`
+- `input_text.set_value`
+
+### Safety Features
+
+1. **Allowlist Enforcement:** Only services in the allowlist can be called
+2. **Error Handling:** Clear error messages for unauthorized services
+3. **Parameter Validation:** Required parameters are validated
+4. **Atomic Operations:** Service calls either succeed completely or fail
+
+### Examples
+
+**Turn on a light with brightness:**
+```json
+{
+  "method": "home/call_service",
+  "params": {
+    "domain": "light",
+    "service": "turn_on",
+    "entity_id": "light.bedroom",
+    "data": {
+      "brightness": 128
+    }
+  },
+  "ha_config": {...}
+}
+```
+
+**Set climate temperature:**
+```json
+{
+  "method": "home/call_service",
+  "params": {
+    "domain": "climate",
+    "service": "set_temperature",
+    "entity_id": "climate.living_room",
+    "data": {
+      "temperature": 22
+    }
+  },
+  "ha_config": {...}
+}
+```
+
+**Trigger an automation:**
+```json
+{
+  "method": "home/call_service",
+  "params": {
+    "domain": "automation",
+    "service": "trigger",
+    "entity_id": "automation.evening_lights"
+  },
+  "ha_config": {...}
+}
+```
 
 ## Phase 3: Audit & Traces (Planned)
 
@@ -316,5 +461,5 @@ curl -X POST \
 ## Roadmap
 
 - ✅ **Phase 1**: Read-only tools (deployed)
-- 🚧 **Phase 2**: Service calls with allowlist (in development)
+- ✅ **Phase 2**: Service calls with allowlist (deployed)
 - 📋 **Phase 3**: Audit trails and rollback (planned)

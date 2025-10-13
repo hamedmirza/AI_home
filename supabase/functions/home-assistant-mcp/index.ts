@@ -24,17 +24,75 @@ interface HomeAssistantConfig {
   token: string;
 }
 
-async function fetchFromHA(config: HomeAssistantConfig, endpoint: string): Promise<unknown> {
+interface ServiceCallParams {
+  domain: string;
+  service: string;
+  entity_id?: string;
+  data?: Record<string, unknown>;
+}
+
+const ALLOWED_SERVICES = [
+  "light.turn_on",
+  "light.turn_off",
+  "light.toggle",
+  "switch.turn_on",
+  "switch.turn_off",
+  "switch.toggle",
+  "climate.set_temperature",
+  "climate.set_hvac_mode",
+  "climate.turn_on",
+  "climate.turn_off",
+  "cover.open_cover",
+  "cover.close_cover",
+  "cover.stop_cover",
+  "cover.set_cover_position",
+  "fan.turn_on",
+  "fan.turn_off",
+  "fan.toggle",
+  "fan.set_percentage",
+  "media_player.turn_on",
+  "media_player.turn_off",
+  "media_player.toggle",
+  "media_player.volume_set",
+  "media_player.media_play",
+  "media_player.media_pause",
+  "media_player.media_stop",
+  "scene.turn_on",
+  "script.turn_on",
+  "automation.trigger",
+  "automation.turn_on",
+  "automation.turn_off",
+  "input_boolean.turn_on",
+  "input_boolean.turn_off",
+  "input_boolean.toggle",
+  "input_number.set_value",
+  "input_select.select_option",
+  "input_text.set_value",
+];
+
+async function fetchFromHA(
+  config: HomeAssistantConfig,
+  endpoint: string,
+  method: string = "GET",
+  body?: unknown
+): Promise<unknown> {
   const url = `${config.url}/api${endpoint}`;
-  const response = await fetch(url, {
+  const options: RequestInit = {
+    method,
     headers: {
       "Authorization": `Bearer ${config.token}`,
       "Content-Type": "application/json",
     },
-  });
+  };
+
+  if (body) {
+    options.body = JSON.stringify(body);
+  }
+
+  const response = await fetch(url, options);
 
   if (!response.ok) {
-    throw new Error(`Home Assistant API error: ${response.statusText}`);
+    throw new Error(`Home Assistant API error: ${response.status} ${response.statusText}`);
   }
 
   return await response.json();
@@ -61,18 +119,18 @@ async function getEntities(config: HomeAssistantConfig): Promise<unknown> {
 
 async function getStates(config: HomeAssistantConfig, params?: Record<string, unknown>): Promise<unknown> {
   const allStates = await fetchFromHA(config, "/states") as Array<Record<string, unknown>>;
-  
+
   if (params?.entity_id) {
     return allStates.filter(s => s.entity_id === params.entity_id);
   }
-  
+
   if (params?.domain) {
     return allStates.filter(s => {
       const entityId = s.entity_id as string;
       return entityId.startsWith(`${params.domain}.`);
     });
   }
-  
+
   return allStates;
 }
 
@@ -84,7 +142,7 @@ async function getAutomations(config: HomeAssistantConfig): Promise<unknown> {
   }>;
 
   const automations = states.filter(s => s.entity_id.startsWith("automation."));
-  
+
   return automations.map(auto => ({
     entity_id: auto.entity_id,
     state: auto.state,
@@ -101,7 +159,7 @@ async function getScripts(config: HomeAssistantConfig): Promise<unknown> {
   }>;
 
   const scripts = states.filter(s => s.entity_id.startsWith("script."));
-  
+
   return scripts.map(script => ({
     entity_id: script.entity_id,
     friendly_name: script.attributes.friendly_name || script.entity_id,
@@ -133,26 +191,26 @@ async function getAIContext(config: HomeAssistantConfig): Promise<unknown> {
     attributes: Record<string, unknown>;
   }>;
 
-  const energyDevices = statesArray.filter(s => 
-    s.entity_id.startsWith("sensor.") && 
-    (s.attributes.device_class === "energy" || 
+  const energyDevices = statesArray.filter(s =>
+    s.entity_id.startsWith("sensor.") &&
+    (s.attributes.device_class === "energy" ||
      s.attributes.device_class === "power" ||
      s.entity_id.includes("energy") ||
      s.entity_id.includes("power"))
   );
 
-  const solarDevices = statesArray.filter(s => 
-    s.entity_id.includes("solar") || 
+  const solarDevices = statesArray.filter(s =>
+    s.entity_id.includes("solar") ||
     s.entity_id.includes("pv") ||
     (s.attributes.device_class === "power" && s.state !== "unavailable")
   );
 
-  const batteryDevices = statesArray.filter(s => 
+  const batteryDevices = statesArray.filter(s =>
     s.entity_id.includes("battery") ||
     s.attributes.device_class === "battery"
   );
 
-  const climateDevices = statesArray.filter(s => 
+  const climateDevices = statesArray.filter(s =>
     s.entity_id.startsWith("climate.") ||
     s.entity_id.startsWith("thermostat.")
   );
@@ -197,6 +255,43 @@ async function getAIContext(config: HomeAssistantConfig): Promise<unknown> {
   };
 }
 
+async function callService(config: HomeAssistantConfig, params: ServiceCallParams): Promise<unknown> {
+  if (!params.domain || !params.service) {
+    throw new Error("Missing required parameters: domain and service");
+  }
+
+  const serviceCall = `${params.domain}.${params.service}`;
+
+  if (!ALLOWED_SERVICES.includes(serviceCall)) {
+    throw new Error(`Service not allowed: ${serviceCall}. Allowed services: ${ALLOWED_SERVICES.join(", ")}`);
+  }
+
+  const serviceData: Record<string, unknown> = {};
+
+  if (params.entity_id) {
+    serviceData.entity_id = params.entity_id;
+  }
+
+  if (params.data) {
+    Object.assign(serviceData, params.data);
+  }
+
+  const result = await fetchFromHA(
+    config,
+    `/services/${params.domain}/${params.service}`,
+    "POST",
+    serviceData
+  );
+
+  return {
+    success: true,
+    service: serviceCall,
+    entity_id: params.entity_id,
+    data: params.data,
+    result,
+  };
+}
+
 async function handleMCPRequest(request: MCPRequest, config: HomeAssistantConfig): Promise<MCPResponse> {
   try {
     let result: unknown;
@@ -205,31 +300,43 @@ async function handleMCPRequest(request: MCPRequest, config: HomeAssistantConfig
       case "home/entities":
         result = await getEntities(config);
         break;
-      
+
       case "home/states":
         result = await getStates(config, request.params);
         break;
-      
+
       case "home/automations":
         result = await getAutomations(config);
         break;
-      
+
       case "home/scripts":
         result = await getScripts(config);
         break;
-      
+
       case "home/services":
         result = await getServices(config);
         break;
-      
+
       case "home/energy":
         result = await getEnergy(config);
         break;
-      
+
       case "home/ai_context":
         result = await getAIContext(config);
         break;
-      
+
+      case "home/call_service":
+        if (!request.params) {
+          return {
+            error: {
+              code: -32602,
+              message: "Missing service call parameters",
+            },
+          };
+        }
+        result = await callService(config, request.params as ServiceCallParams);
+        break;
+
       default:
         return {
           error: {
