@@ -983,8 +983,12 @@ Respond naturally as Grok AI - helpful and knowledgeable.`;
         const cleanSearch = searchTerm.toLowerCase().trim().replace(/\s+/g, ' ');
         const cleanSearchNoSpaces = cleanSearch.replace(/\s+/g, '_');
 
-        return entities.find(e => {
+        console.log('[findEntity] Searching for:', cleanSearch, 'in domain:', domain || 'any');
+
+        const matches = entities.filter(e => {
           const matchesDomain = !domain || e.entity_id.startsWith(`${domain}.`);
+          if (!matchesDomain) return false;
+
           const entityIdLower = e.entity_id.toLowerCase();
           const friendlyNameLower = (e.friendly_name || '').toLowerCase();
 
@@ -1000,8 +1004,24 @@ Respond naturally as Grok AI - helpful and knowledgeable.`;
           const entityIdSpaced = entityIdWithoutDomain.replace(/_/g, ' ');
           const matchesIdSpaced = entityIdSpaced.includes(cleanSearch);
 
-          return matchesDomain && (matchesId || matchesName || matchesIdSpaced || matchesIdWithUnderscore);
+          const matched = matchesId || matchesName || matchesIdSpaced || matchesIdWithUnderscore;
+
+          if (matched) {
+            console.log('[findEntity] Potential match:', e.entity_id, 'friendly_name:', e.friendly_name,
+                       'matchesId:', matchesId, 'matchesName:', matchesName,
+                       'matchesIdSpaced:', matchesIdSpaced, 'matchesIdWithUnderscore:', matchesIdWithUnderscore);
+          }
+
+          return matched;
         });
+
+        console.log('[findEntity] Found', matches.length, 'potential matches');
+
+        if (matches.length > 0) {
+          console.log('[findEntity] Returning first match:', matches[0].entity_id, matches[0].friendly_name);
+        }
+
+        return matches[0];
       };
 
       // Extract potential entity names from command (multi-word support)
