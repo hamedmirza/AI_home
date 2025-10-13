@@ -409,8 +409,33 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
       );
     }
 
-    if (card.type === 'gauge' && card.entityId) {
+    if (card.type === 'gauge') {
       console.log('[Dashboards] Gauge card - entityId:', card.entityId);
+
+      if (!card.entityId) {
+        console.warn('[Dashboards] Gauge card has no entityId configured:', card.id);
+        return (
+          <Card key={card.id} className="relative">
+            {editMode && (
+              <div className="absolute top-2 right-2 flex gap-1 z-10">
+                <button onClick={() => startEditCard(card)} className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+                  <Edit3 className="w-4 h-4" />
+                </button>
+                <button onClick={() => removeCard(card.id)} className="p-1 bg-red-500 text-white rounded hover:bg-red-600">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+            <div className="p-6">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">{card.title}</h3>
+              <div className="text-center text-amber-600 bg-amber-50 p-4 rounded">
+                ⚠️ No entity selected. Click Edit to configure.
+              </div>
+            </div>
+          </Card>
+        );
+      }
+
       const entity = entities.find(e => e.entity_id === card.entityId);
       if (!entity) {
         console.warn('[Dashboards] Entity not found for gauge card:', card.entityId);
@@ -458,8 +483,28 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
       );
     }
 
-    if (card.type === 'history-graph' && card.entityId) {
+    if (card.type === 'history-graph') {
       console.log('[Dashboards] History graph card - entityId:', card.entityId);
+
+      if (!card.entityId) {
+        console.warn('[Dashboards] History graph card has no entityId configured:', card.id);
+        return (
+          <Card key={card.id} className="relative col-span-2">
+            {editMode && (
+              <button onClick={() => removeCard(card.id)} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded hover:bg-red-600 z-10">
+                <X className="w-4 h-4" />
+              </button>
+            )}
+            <div className="p-6">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">{card.title}</h3>
+              <div className="text-center text-amber-600 bg-amber-50 p-4 rounded">
+                ⚠️ No entity selected. Click Edit to configure.
+              </div>
+            </div>
+          </Card>
+        );
+      }
+
       const entity = entities.find(e => e.entity_id === card.entityId);
       if (!entity) {
         console.warn('[Dashboards] Entity not found for history graph:', card.entityId);
@@ -496,8 +541,33 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
       );
     }
 
-    if (card.type === 'sensor' && card.entityId) {
+    if (card.type === 'sensor') {
       console.log('[Dashboards] Sensor card - entityId:', card.entityId);
+
+      if (!card.entityId) {
+        console.warn('[Dashboards] Sensor card has no entityId configured:', card.id);
+        return (
+          <Card key={card.id} className="relative">
+            {editMode && (
+              <div className="absolute top-2 right-2 flex gap-1 z-10">
+                <button onClick={() => startEditCard(card)} className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+                  <Edit3 className="w-4 h-4" />
+                </button>
+                <button onClick={() => removeCard(card.id)} className="p-1 bg-red-500 text-white rounded hover:bg-red-600">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+            <div className="p-6">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">{card.title}</h3>
+              <div className="text-center text-amber-600 bg-amber-50 p-4 rounded">
+                ⚠️ No entity selected. Click Edit to configure.
+              </div>
+            </div>
+          </Card>
+        );
+      }
+
       const entity = entities.find(e => e.entity_id === card.entityId);
       if (!entity) {
         console.warn('[Dashboards] Entity not found for sensor card:', card.entityId);
@@ -532,8 +602,32 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
       );
     }
 
-    if (card.type === 'button' && card.entityId) {
+    if (card.type === 'button') {
       console.log('[Dashboards] Button card - entityId:', card.entityId);
+
+      if (!card.entityId) {
+        console.warn('[Dashboards] Button card has no entityId configured:', card.id);
+        return (
+          <Card key={card.id} className="relative">
+            {editMode && (
+              <div className="absolute top-2 right-2 flex gap-1 z-10">
+                <button onClick={() => startEditCard(card)} className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+                  <Edit3 className="w-4 h-4" />
+                </button>
+                <button onClick={() => removeCard(card.id)} className="p-1 bg-red-500 text-white rounded hover:bg-red-600">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+            <div className="p-6">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">{card.title}</h3>
+              <div className="text-center text-amber-600 bg-amber-50 p-4 rounded">
+                ⚠️ No entity selected. Click Edit to configure.
+              </div>
+            </div>
+          </Card>
+        );
+      }
       return (
         <Card key={card.id} className="relative">
           {editMode && (

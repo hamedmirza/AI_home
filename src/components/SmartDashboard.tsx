@@ -448,8 +448,28 @@ export function SmartDashboard() {
       );
     }
 
-    if (card.type === 'gauge' && card.entityId) {
+    if (card.type === 'gauge') {
       console.log('[SmartDashboard] Gauge card - entityId:', card.entityId);
+
+      if (!card.entityId) {
+        console.warn('[SmartDashboard] Gauge card has no entityId configured:', card.id);
+        return (
+          <Card key={card.id} className="relative">
+            {editMode && (
+              <button onClick={() => removeCard(card.id)} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded hover:bg-red-600 z-10">
+                <X className="w-4 h-4" />
+              </button>
+            )}
+            <div className="p-6">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">{card.title}</h3>
+              <div className="text-center text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400 p-4 rounded">
+                ⚠️ No entity selected. {editMode ? 'Remove this card.' : 'Enable edit mode to configure.'}
+              </div>
+            </div>
+          </Card>
+        );
+      }
+
       const entity = entities.find(e => e.entity_id === card.entityId);
       if (!entity) {
         console.warn('[SmartDashboard] Entity not found for gauge card:', card.entityId);
@@ -492,8 +512,28 @@ export function SmartDashboard() {
       );
     }
 
-    if (card.type === 'history-graph' && card.entityId) {
+    if (card.type === 'history-graph') {
       console.log('[SmartDashboard] History graph card - entityId:', card.entityId);
+
+      if (!card.entityId) {
+        console.warn('[SmartDashboard] History graph card has no entityId configured:', card.id);
+        return (
+          <Card key={card.id} className="relative col-span-2">
+            {editMode && (
+              <button onClick={() => removeCard(card.id)} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded hover:bg-red-600 z-10">
+                <X className="w-4 h-4" />
+              </button>
+            )}
+            <div className="p-6">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">{card.title}</h3>
+              <div className="text-center text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400 p-4 rounded">
+                ⚠️ No entity selected. {editMode ? 'Remove this card.' : 'Enable edit mode to configure.'}
+              </div>
+            </div>
+          </Card>
+        );
+      }
+
       const entity = entities.find(e => e.entity_id === card.entityId);
       if (!entity) {
         console.warn('[SmartDashboard] Entity not found for history graph:', card.entityId);
@@ -530,8 +570,28 @@ export function SmartDashboard() {
       );
     }
 
-    if (card.type === 'sensor' && card.entityId) {
+    if (card.type === 'sensor') {
       console.log('[SmartDashboard] Sensor card - entityId:', card.entityId);
+
+      if (!card.entityId) {
+        console.warn('[SmartDashboard] Sensor card has no entityId configured:', card.id);
+        return (
+          <Card key={card.id} className="relative">
+            {editMode && (
+              <button onClick={() => removeCard(card.id)} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded hover:bg-red-600 z-10">
+                <X className="w-4 h-4" />
+              </button>
+            )}
+            <div className="p-6">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">{card.title}</h3>
+              <div className="text-center text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400 p-4 rounded">
+                ⚠️ No entity selected. {editMode ? 'Remove this card.' : 'Enable edit mode to configure.'}
+              </div>
+            </div>
+          </Card>
+        );
+      }
+
       const entity = entities.find(e => e.entity_id === card.entityId);
       if (!entity) {
         console.warn('[SmartDashboard] Entity not found for sensor card:', card.entityId);
@@ -561,8 +621,28 @@ export function SmartDashboard() {
       );
     }
 
-    if (card.type === 'button' && card.entityId) {
+    if (card.type === 'button') {
       console.log('[SmartDashboard] Button card - entityId:', card.entityId);
+
+      if (!card.entityId) {
+        console.warn('[SmartDashboard] Button card has no entityId configured:', card.id);
+        return (
+          <Card key={card.id} className="relative">
+            {editMode && (
+              <button onClick={() => removeCard(card.id)} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded hover:bg-red-600 z-10">
+                <X className="w-4 h-4" />
+              </button>
+            )}
+            <div className="p-6">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">{card.title}</h3>
+              <div className="text-center text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400 p-4 rounded">
+                ⚠️ No entity selected. {editMode ? 'Remove this card.' : 'Enable edit mode to configure.'}
+              </div>
+            </div>
+          </Card>
+        );
+      }
+
       return (
         <Card key={card.id} className="relative">
           {editMode && (
