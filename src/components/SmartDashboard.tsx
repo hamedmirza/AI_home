@@ -521,7 +521,24 @@ export function SmartDashboard() {
   const currentDashboard = dashboards.find(d => d.id === activeDashboardId);
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64">Loading smart dashboards...</div>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <Activity className="w-8 h-8 animate-spin text-blue-500 mx-auto mb-2" />
+          <p className="text-gray-600">Loading dashboards...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentDashboard) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-gray-600">No dashboard found</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -586,10 +603,12 @@ export function SmartDashboard() {
                 <p className="text-gray-600 dark:text-gray-400 mb-6">
                   Add smart cards to visualize your home data
                 </p>
-                <Button onClick={() => setShowAddCard(true)}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add First Card
-                </Button>
+                {editMode && (
+                  <Button onClick={() => setShowAddCard(true)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add First Card
+                  </Button>
+                )}
               </div>
             </Card>
           ) : (
@@ -597,12 +616,14 @@ export function SmartDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {currentDashboard.cards.map(renderCard)}
               </div>
-              <div className="mt-6">
-                <Button onClick={() => setShowAddCard(true)} variant="secondary">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Card
-                </Button>
-              </div>
+              {editMode && (
+                <div className="mt-6">
+                  <Button onClick={() => setShowAddCard(true)} variant="secondary">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Card
+                  </Button>
+                </div>
+              )}
             </>
           )}
         </div>

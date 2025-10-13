@@ -506,6 +506,16 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
     return <div className="flex items-center justify-center h-64">Loading dashboards...</div>;
   }
 
+  if (!currentDashboard) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-gray-600">No dashboard found</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -576,12 +586,14 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {currentDashboard.cards.map(renderCard)}
               </div>
-              <div className="mt-6">
-                <Button onClick={() => setShowAddCard(true)} variant="secondary">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Card
-                </Button>
-              </div>
+              {editMode && (
+                <div className="mt-6">
+                  <Button onClick={() => setShowAddCard(true)} variant="secondary">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Card
+                  </Button>
+                </div>
+              )}
             </>
           )}
         </div>
