@@ -349,7 +349,7 @@ class EnergyPricingService {
 
       if (feedInEntity && feedInEntity.state) {
         const tariff = parseFloat(feedInEntity.state);
-        if (!isNaN(tariff) && tariff >= 0 && tariff !== newFeedInTariff) {
+        if (!isNaN(tariff) && tariff !== newFeedInTariff) {
           newFeedInTariff = tariff;
           updated = true;
         }
