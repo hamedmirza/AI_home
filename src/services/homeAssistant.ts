@@ -974,6 +974,8 @@ Respond naturally as Grok AI - helpful and knowledgeable.`;
     scripts: any[] = []
   ): Promise<void> {
     const lowerCommand = command.toLowerCase();
+    console.log('[executeDeviceCommands] Attempting to execute command:', lowerCommand);
+    console.log('[executeDeviceCommands] Available entities:', entities.length);
 
     try {
       // Helper function to find entity by name or ID
@@ -1068,31 +1070,38 @@ Respond naturally as Grok AI - helpful and knowledgeable.`;
 
       // Turn on commands
       if (lowerCommand.includes('turn on') || lowerCommand.includes('switch on') || lowerCommand.includes('enable')) {
+        console.log('[executeDeviceCommands] Detected TURN ON command');
+
         // Try extracted multi-word entity names first
         const entityNames = extractEntityNames();
-        console.log('[AI Control] Extracted entity names:', entityNames);
+        console.log('[executeDeviceCommands] Extracted entity names:', entityNames);
 
         for (const name of entityNames) {
           const entity = findEntity(name);
           if (entity) {
-            console.log('[AI Control] Found entity:', entity.entity_id, 'for name:', name);
+            console.log('[executeDeviceCommands] Found entity:', entity.entity_id, 'for name:', name);
             const domain = entity.entity_id.split('.')[0];
             await this.callService(domain, 'turn_on', { entity_id: entity.entity_id });
-            console.log('[AI Control] Turned on:', entity.entity_id);
+            console.log('[executeDeviceCommands] ✓ Successfully turned on:', entity.entity_id);
             return;
           } else {
-            console.log('[AI Control] No entity found for name:', name);
+            console.log('[executeDeviceCommands] No entity found for name:', name);
           }
         }
 
         // Try to find specific entity mentioned by single words
+        console.log('[executeDeviceCommands] Trying single words from command...');
         for (const word of words) {
           if (word.length < 3) continue; // Skip short words
           const entity = findEntity(word);
-          if (entity && entity.state === 'off') {
-            const domain = entity.entity_id.split('.')[0];
-            await this.callService(domain, 'turn_on', { entity_id: entity.entity_id });
-            return;
+          if (entity) {
+            console.log('[executeDeviceCommands] Found entity by word "' + word + '":', entity.entity_id, 'state:', entity.state);
+            if (entity.state === 'off' || entity.state === 'on') {
+              const domain = entity.entity_id.split('.')[0];
+              await this.callService(domain, 'turn_on', { entity_id: entity.entity_id });
+              console.log('[executeDeviceCommands] ✓ Successfully turned on:', entity.entity_id);
+              return;
+            }
           }
         }
 
@@ -1197,8 +1206,10 @@ Respond naturally as Grok AI - helpful and knowledgeable.`;
           }
         }
       }
+
+      console.log('[executeDeviceCommands] No matching command pattern found for:', lowerCommand);
     } catch (error) {
-      console.error('Failed to execute device command:', error);
+      console.error('[executeDeviceCommands] Failed to execute device command:', error);
     }
   }
 
