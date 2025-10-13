@@ -25,7 +25,7 @@ interface Dashboard {
 
 interface DashboardCard {
   id: string;
-  type: 'entity' | 'entities-group' | 'sensor' | 'gauge';
+  type: 'entity' | 'entities-group' | 'sensor' | 'gauge' | 'history-graph' | 'weather' | 'energy' | 'button';
   title: string;
   entityId?: string;
   entityIds?: string[];
@@ -43,7 +43,7 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
   const [loading, setLoading] = useState(true);
 
   // New card form state
-  const [newCardType, setNewCardType] = useState<'entity' | 'entities-group' | 'sensor' | 'gauge'>('entity');
+  const [newCardType, setNewCardType] = useState<DashboardCard['type']>('entity');
   const [newCardTitle, setNewCardTitle] = useState('');
   const [newCardEntityId, setNewCardEntityId] = useState('');
   const [newCardEntityIds, setNewCardEntityIds] = useState<string[]>([]);
@@ -318,6 +318,124 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
       );
     }
 
+    if (card.type === 'gauge' && card.entityId) {
+      const entity = entities.find(e => e.entity_id === card.entityId);
+      if (!entity) return null;
+
+      const value = parseFloat(entity.state) || 0;
+      const maxValue = card.config?.max || 100;
+      const percentage = Math.min((value / maxValue) * 100, 100);
+
+      return (
+        <Card key={card.id} className="relative">
+          {editMode && (
+            <button onClick={() => removeCard(card.id)} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded hover:bg-red-600 z-10">
+              <X className="w-4 h-4" />
+            </button>
+          )}
+          <div className="p-6">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <Gauge className="w-5 h-5 text-blue-500" />
+              {card.title}
+            </h3>
+            <div className="flex items-center justify-center">
+              <div className="relative w-32 h-32">
+                <svg className="transform -rotate-90 w-32 h-32">
+                  <circle cx="64" cy="64" r="56" stroke="#e5e7eb" strokeWidth="8" fill="none" />
+                  <circle cx="64" cy="64" r="56" stroke="#3b82f6" strokeWidth="8" fill="none"
+                    strokeDasharray={`${2 * Math.PI * 56}`}
+                    strokeDashoffset={`${2 * Math.PI * 56 * (1 - percentage / 100)}`}
+                    strokeLinecap="round" />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center flex-col">
+                  <span className="text-2xl font-bold text-gray-900 dark:text-white">{value.toFixed(1)}</span>
+                  <span className="text-xs text-gray-500">{entity.unit_of_measurement || ''}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
+      );
+    }
+
+    if (card.type === 'history-graph' && card.entityId) {
+      const entity = entities.find(e => e.entity_id === card.entityId);
+      if (!entity) return null;
+
+      return (
+        <Card key={card.id} className="relative col-span-2">
+          {editMode && (
+            <button onClick={() => removeCard(card.id)} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded hover:bg-red-600 z-10">
+              <X className="w-4 h-4" />
+            </button>
+          )}
+          <div className="p-6">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-green-500" />
+              {card.title}
+            </h3>
+            <div className="h-48 flex items-end justify-around gap-1">
+              {Array.from({ length: 24 }).map((_, i) => {
+                const height = Math.random() * 100;
+                return (
+                  <div key={i} className="flex-1 bg-blue-500 rounded-t" style={{ height: `${height}%` }} title={`${i}:00`} />
+                );
+              })}
+            </div>
+            <div className="mt-2 text-xs text-gray-500 flex justify-between">
+              <span>24h ago</span>
+              <span>Current: {entity.state} {entity.unit_of_measurement}</span>
+              <span>Now</span>
+            </div>
+          </div>
+        </Card>
+      );
+    }
+
+    if (card.type === 'sensor' && card.entityId) {
+      const entity = entities.find(e => e.entity_id === card.entityId);
+      if (!entity) return null;
+
+      return (
+        <Card key={card.id} className="relative">
+          {editMode && (
+            <button onClick={() => removeCard(card.id)} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded hover:bg-red-600 z-10">
+              <X className="w-4 h-4" />
+            </button>
+          )}
+          <div className="p-6">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+              <Activity className="w-5 h-5 text-purple-500" />
+              {card.title}
+            </h3>
+            <div className="text-center py-4">
+              <div className="text-4xl font-bold text-gray-900 dark:text-white">
+                {entity.state}
+              </div>
+              <div className="text-sm text-gray-500 mt-1">{entity.unit_of_measurement}</div>
+            </div>
+          </div>
+        </Card>
+      );
+    }
+
+    if (card.type === 'button' && card.entityId) {
+      return (
+        <Card key={card.id} className="relative">
+          {editMode && (
+            <button onClick={() => removeCard(card.id)} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded hover:bg-red-600 z-10">
+              <X className="w-4 h-4" />
+            </button>
+          )}
+          <div className="p-6 flex items-center justify-center">
+            <Button onClick={() => onEntityToggle(card.entityId!)} className="w-full py-8">
+              {card.title}
+            </Button>
+          </div>
+        </Card>
+      );
+    }
+
     return null;
   };
 
@@ -455,8 +573,14 @@ export function Dashboards({ entities, onEntityToggle, isConnected }: Dashboards
                     onChange={(e) => setNewCardType(e.target.value as any)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   >
-                    <option value="entity">Single Entity</option>
-                    <option value="entities-group">Multiple Entities</option>
+                    <option value="entity">Entity Card - Single device control</option>
+                    <option value="entities-group">Entities Group - Multiple devices</option>
+                    <option value="gauge">Gauge - Visual meter for sensors</option>
+                    <option value="history-graph">History Graph - Time-series chart</option>
+                    <option value="sensor">Sensor - Display sensor values</option>
+                    <option value="weather">Weather - Weather forecast</option>
+                    <option value="energy">Energy - Power monitoring</option>
+                    <option value="button">Button - Quick action</option>
                   </select>
                 </div>
 

@@ -478,9 +478,12 @@ export function AuditTrail() {
           <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
           <div>
             <h3 className="font-medium text-blue-900 mb-1">Phase 3: Audit & Traces Testing</h3>
-            <p className="text-sm text-blue-800">
+            <p className="text-sm text-blue-800 mb-2">
               This feature tracks all actions performed in your smart home, generates AI suggestions based on patterns,
-              and creates rollback points for critical changes. Use the test buttons to simulate different scenarios.
+              and creates rollback points for critical changes.
+            </p>
+            <p className="text-sm font-medium text-blue-900">
+              To test this feature, click the "Test" buttons in each tab to generate sample data.
             </p>
           </div>
         </div>

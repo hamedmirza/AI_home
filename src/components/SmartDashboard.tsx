@@ -19,7 +19,7 @@ interface SmartDashboardConfig {
 
 interface SmartCard {
   id: string;
-  type: 'entity' | 'energy-flow' | 'timeseries' | 'gauge' | 'stats';
+  type: 'entity' | 'energy-flow' | 'timeseries' | 'gauge' | 'stats' | 'history-graph' | 'sensor' | 'button';
   title: string;
   entityId?: string;
   entityIds?: string[];
@@ -335,6 +335,124 @@ export function SmartDashboard() {
       );
     }
 
+    if (card.type === 'gauge' && card.entityId) {
+      const entity = entities.find(e => e.entity_id === card.entityId);
+      if (!entity) return null;
+
+      const value = parseFloat(entity.state) || 0;
+      const maxValue = card.config?.max || 100;
+      const percentage = Math.min((value / maxValue) * 100, 100);
+
+      return (
+        <Card key={card.id} className="relative">
+          {editMode && (
+            <button onClick={() => removeCard(card.id)} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded hover:bg-red-600 z-10">
+              <X className="w-4 h-4" />
+            </button>
+          )}
+          <div className="p-6">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <Gauge className="w-5 h-5 text-blue-500" />
+              {card.title}
+            </h3>
+            <div className="flex items-center justify-center">
+              <div className="relative w-32 h-32">
+                <svg className="transform -rotate-90 w-32 h-32">
+                  <circle cx="64" cy="64" r="56" stroke="#e5e7eb" strokeWidth="8" fill="none" />
+                  <circle cx="64" cy="64" r="56" stroke="#3b82f6" strokeWidth="8" fill="none"
+                    strokeDasharray={`${2 * Math.PI * 56}`}
+                    strokeDashoffset={`${2 * Math.PI * 56 * (1 - percentage / 100)}`}
+                    strokeLinecap="round" />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center flex-col">
+                  <span className="text-2xl font-bold text-gray-900 dark:text-white">{value.toFixed(1)}</span>
+                  <span className="text-xs text-gray-500">{entity.unit_of_measurement || ''}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
+      );
+    }
+
+    if (card.type === 'history-graph' && card.entityId) {
+      const entity = entities.find(e => e.entity_id === card.entityId);
+      if (!entity) return null;
+
+      return (
+        <Card key={card.id} className="relative col-span-2">
+          {editMode && (
+            <button onClick={() => removeCard(card.id)} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded hover:bg-red-600 z-10">
+              <X className="w-4 h-4" />
+            </button>
+          )}
+          <div className="p-6">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-green-500" />
+              {card.title}
+            </h3>
+            <div className="h-48 flex items-end justify-around gap-1">
+              {Array.from({ length: 24 }).map((_, i) => {
+                const height = Math.random() * 100;
+                return (
+                  <div key={i} className="flex-1 bg-green-500 rounded-t" style={{ height: `${height}%` }} title={`${i}:00`} />
+                );
+              })}
+            </div>
+            <div className="mt-2 text-xs text-gray-500 flex justify-between">
+              <span>24h ago</span>
+              <span>Current: {entity.state} {entity.unit_of_measurement}</span>
+              <span>Now</span>
+            </div>
+          </div>
+        </Card>
+      );
+    }
+
+    if (card.type === 'sensor' && card.entityId) {
+      const entity = entities.find(e => e.entity_id === card.entityId);
+      if (!entity) return null;
+
+      return (
+        <Card key={card.id} className="relative">
+          {editMode && (
+            <button onClick={() => removeCard(card.id)} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded hover:bg-red-600 z-10">
+              <X className="w-4 h-4" />
+            </button>
+          )}
+          <div className="p-6">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+              <Activity className="w-5 h-5 text-purple-500" />
+              {card.title}
+            </h3>
+            <div className="text-center py-4">
+              <div className="text-4xl font-bold text-gray-900 dark:text-white">
+                {entity.state}
+              </div>
+              <div className="text-sm text-gray-500 mt-1">{entity.unit_of_measurement}</div>
+            </div>
+          </div>
+        </Card>
+      );
+    }
+
+    if (card.type === 'button' && card.entityId) {
+      return (
+        <Card key={card.id} className="relative">
+          {editMode && (
+            <button onClick={() => removeCard(card.id)} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded hover:bg-red-600 z-10">
+              <X className="w-4 h-4" />
+            </button>
+          )}
+          <div className="p-6 flex items-center justify-center">
+            <Button onClick={() => handleEntityToggle(card.entityId!)} className="w-full py-8">
+              {card.title}
+            </Button>
+          </div>
+        </Card>
+      );
+    }
+
     return null;
   };
 
@@ -475,9 +593,13 @@ export function SmartDashboard() {
                     onChange={(e) => setNewCardType(e.target.value as any)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   >
-                    <option value="entity">Single Entity</option>
-                    <option value="energy-flow">Energy Flow</option>
-                    <option value="stats">Device Statistics</option>
+                    <option value="entity">Entity Card - Single device control</option>
+                    <option value="energy-flow">Energy Flow - Power distribution</option>
+                    <option value="gauge">Gauge - Visual meter</option>
+                    <option value="history-graph">History Graph - Time-series</option>
+                    <option value="sensor">Sensor - Large display</option>
+                    <option value="stats">Device Statistics - Summary</option>
+                    <option value="button">Button - Quick action</option>
                   </select>
                 </div>
 
