@@ -1088,7 +1088,17 @@ Respond naturally as Grok AI - helpful and knowledgeable.`;
             console.log('[executeDeviceCommands] Found entity:', entity.entity_id, 'for name:', name);
             const domain = entity.entity_id.split('.')[0];
             await this.callService(domain, 'turn_on', { entity_id: entity.entity_id });
-            console.log('[executeDeviceCommands] ✓ Successfully turned on:', entity.entity_id);
+
+            // Verify the command worked
+            await new Promise(resolve => setTimeout(resolve, 500)); // Wait 500ms for state update
+            const updatedStates = await this.getStates();
+            const updatedEntity = updatedStates.find((e: Entity) => e.entity_id === entity.entity_id);
+
+            if (updatedEntity && updatedEntity.state === 'on') {
+              console.log('[executeDeviceCommands] ✓ Verified: Successfully turned on:', entity.entity_id);
+            } else {
+              console.warn('[executeDeviceCommands] ⚠ Command sent but state not verified:', entity.entity_id, 'Current state:', updatedEntity?.state);
+            }
             return;
           } else {
             console.log('[executeDeviceCommands] No entity found for name:', name);
@@ -1105,7 +1115,17 @@ Respond naturally as Grok AI - helpful and knowledgeable.`;
             if (entity.state === 'off' || entity.state === 'on') {
               const domain = entity.entity_id.split('.')[0];
               await this.callService(domain, 'turn_on', { entity_id: entity.entity_id });
-              console.log('[executeDeviceCommands] ✓ Successfully turned on:', entity.entity_id);
+
+              // Verify the command worked
+              await new Promise(resolve => setTimeout(resolve, 500));
+              const updatedStates = await this.getStates();
+              const updatedEntity = updatedStates.find((e: Entity) => e.entity_id === entity.entity_id);
+
+              if (updatedEntity && updatedEntity.state === 'on') {
+                console.log('[executeDeviceCommands] ✓ Verified: Successfully turned on:', entity.entity_id);
+              } else {
+                console.warn('[executeDeviceCommands] ⚠ Command sent but state not verified:', entity.entity_id, 'Current state:', updatedEntity?.state);
+              }
               return;
             }
           }
@@ -1131,24 +1151,53 @@ Respond naturally as Grok AI - helpful and knowledgeable.`;
 
       // Turn off commands
       if (lowerCommand.includes('turn off') || lowerCommand.includes('switch off') || lowerCommand.includes('disable')) {
+        console.log('[executeDeviceCommands] Detected TURN OFF command');
+
         // Try extracted multi-word entity names first
         const entityNames = extractEntityNames();
+        console.log('[executeDeviceCommands] Extracted entity names:', entityNames);
+
         for (const name of entityNames) {
           const entity = findEntity(name);
           if (entity) {
+            console.log('[executeDeviceCommands] Found entity:', entity.entity_id, 'for name:', name);
             const domain = entity.entity_id.split('.')[0];
             await this.callService(domain, 'turn_off', { entity_id: entity.entity_id });
+
+            // Verify the command worked
+            await new Promise(resolve => setTimeout(resolve, 500));
+            const updatedStates = await this.getStates();
+            const updatedEntity = updatedStates.find((e: Entity) => e.entity_id === entity.entity_id);
+
+            if (updatedEntity && updatedEntity.state === 'off') {
+              console.log('[executeDeviceCommands] ✓ Verified: Successfully turned off:', entity.entity_id);
+            } else {
+              console.warn('[executeDeviceCommands] ⚠ Command sent but state not verified:', entity.entity_id, 'Current state:', updatedEntity?.state);
+            }
             return;
           }
         }
 
         // Try to find specific entity mentioned by single words
+        console.log('[executeDeviceCommands] Trying single words from command...');
         for (const word of words) {
           if (word.length < 3) continue; // Skip short words
           const entity = findEntity(word);
           if (entity && entity.state === 'on') {
+            console.log('[executeDeviceCommands] Found entity by word "' + word + '":', entity.entity_id, 'state:', entity.state);
             const domain = entity.entity_id.split('.')[0];
             await this.callService(domain, 'turn_off', { entity_id: entity.entity_id });
+
+            // Verify the command worked
+            await new Promise(resolve => setTimeout(resolve, 500));
+            const updatedStates = await this.getStates();
+            const updatedEntity = updatedStates.find((e: Entity) => e.entity_id === entity.entity_id);
+
+            if (updatedEntity && updatedEntity.state === 'off') {
+              console.log('[executeDeviceCommands] ✓ Verified: Successfully turned off:', entity.entity_id);
+            } else {
+              console.warn('[executeDeviceCommands] ⚠ Command sent but state not verified:', entity.entity_id, 'Current state:', updatedEntity?.state);
+            }
             return;
           }
         }
