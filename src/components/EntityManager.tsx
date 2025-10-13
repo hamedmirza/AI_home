@@ -345,6 +345,106 @@ export const EntityManager: React.FC<EntityManagerProps> = ({ entities, onEntity
 
       {/* Entity Grid/List View */}
       {viewMode === 'list' ? (
+        <Card>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <input
+                      type="checkbox"
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedEntities(new Set(filteredEntities.map(e => e.entity_id)));
+                          setShowBulkActions(true);
+                        } else {
+                          setSelectedEntities(new Set());
+                          setShowBulkActions(false);
+                        }
+                      }}
+                      className="rounded border-gray-300"
+                    />
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Entity</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Domain</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">State</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Control</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredEntities.map(entity => {
+                  const isControllable = entity.entity_id.startsWith('light.') || entity.entity_id.startsWith('switch.');
+                  return (
+                    <tr key={entity.entity_id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <input
+                          type="checkbox"
+                          checked={selectedEntities.has(entity.entity_id)}
+                          onChange={(e) => {
+                            const newSelected = new Set(selectedEntities);
+                            if (e.target.checked) {
+                              newSelected.add(entity.entity_id);
+                            } else {
+                              newSelected.delete(entity.entity_id);
+                            }
+                            setSelectedEntities(newSelected);
+                            setShowBulkActions(newSelected.size > 0);
+                          }}
+                          className="rounded border-gray-300"
+                        />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          {getEntityIcon(entity.entity_id, entity.device_class)}
+                          <div className="ml-3">
+                            <div className="text-sm font-medium text-gray-900">{entity.friendly_name || entity.entity_id}</div>
+                            <div className="text-xs text-gray-500">{entity.entity_id}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                          {entity.domain}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {entity.state}
+                          {entity.unit_of_measurement && ` ${entity.unit_of_measurement}`}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {isControllable && (
+                          <Switch
+                            checked={entity.state === 'on'}
+                            onChange={() => onEntityToggle(entity.entity_id)}
+                          />
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end space-x-1">
+                          {canEditEntity(entity) && (
+                            <Button variant="ghost" size="sm" onClick={() => handleEditEntity(entity)} title="Edit value">
+                              <Edit3 className="w-4 h-4" />
+                            </Button>
+                          )}
+                          <Button variant="ghost" size="sm" onClick={() => handleDisableEntity(entity.entity_id)} title="Disable entity">
+                            <Power className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleDeleteEntity(entity.entity_id)} title="Delete entity">
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEntities.map(entity => (
             <Card key={entity.entity_id} className="hover:shadow-lg transition-all duration-200">
@@ -471,142 +571,6 @@ export const EntityManager: React.FC<EntityManagerProps> = ({ entities, onEntity
             </Card>
           ))}
         </div>
-      ) : (
-        <Card>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <input
-                        type="checkbox"
-                        checked={selectedEntities.size === filteredEntities.length && filteredEntities.length > 0}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedEntities(new Set(filteredEntities.map(e => e.entity_id)));
-                            setShowBulkActions(true);
-                          } else {
-                            setSelectedEntities(new Set());
-                            setShowBulkActions(false);
-                          }
-                        }}
-                        className="rounded border-gray-300"
-                      />
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Entity
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Type
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      State
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Control
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredEntities.map(entity => (
-                    <tr key={entity.entity_id} className="hover:bg-gray-50">
-                      <td className="px-3 py-2 whitespace-nowrap">
-                        <input
-                          type="checkbox"
-                          checked={selectedEntities.has(entity.entity_id)}
-                          onChange={(e) => {
-                            const newSelected = new Set(selectedEntities);
-                            if (e.target.checked) {
-                              newSelected.add(entity.entity_id);
-                            } else {
-                              newSelected.delete(entity.entity_id);
-                            }
-                            setSelectedEntities(newSelected);
-                            setShowBulkActions(newSelected.size > 0);
-                          }}
-                          className="rounded border-gray-300"
-                        />
-                      </td>
-                      <td className="px-3 py-2 whitespace-nowrap">
-                        <div className="flex items-center space-x-2">
-                          {getEntityIcon(entity.entity_id, entity.device_class)}
-                          <div>
-                            <div className="text-xs font-medium text-gray-900">
-                              {entity.friendly_name || entity.entity_id}
-                            </div>
-                            <div className="text-xs text-gray-500">{entity.entity_id}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-3 py-2 whitespace-nowrap">
-                        <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
-                          {entity.entity_id.split('.')[0]}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2 whitespace-nowrap">
-                        {renderEntityValue(entity)}
-                        {editingEntity?.entity_id === entity.entity_id && (
-                          <div className="flex space-x-1 mt-2">
-                            <Button size="sm" variant="primary" onClick={handleSaveEdit}>
-                              Save
-                            </Button>
-                            <Button size="sm" variant="outline" onClick={() => setEditingEntity(null)}>
-                              Cancel
-                            </Button>
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-3 py-2 whitespace-nowrap">
-                        {(entity.entity_id.startsWith('light.') ||
-                          entity.entity_id.startsWith('switch.') ||
-                          entity.entity_id.startsWith('input_boolean.')) && (
-                          <Switch
-                            checked={entity.state === 'on'}
-                            onChange={() => onEntityToggle(entity.entity_id)}
-                          />
-                        )}
-                      </td>
-                      <td className="px-3 py-2 whitespace-nowrap">
-                        <div className="flex items-center space-x-2">
-                          {canEditEntity(entity) && (
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => handleEditEntity(entity)}
-                              title="Edit value"
-                            >
-                              <Edit3 className="w-4 h-4" />
-                            </Button>
-                          )}
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleDisableEntity(entity.entity_id)}
-                            title="Disable entity"
-                          >
-                            <Power className="w-4 h-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleDeleteEntity(entity.entity_id)}
-                            title="Delete entity"
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
       )}
 
       {filteredEntities.length === 0 && (

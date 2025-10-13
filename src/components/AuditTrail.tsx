@@ -102,6 +102,7 @@ export function AuditTrail() {
         return;
       }
 
+      setLoading(true);
       const lastLog = actionLogs[0];
       const entityStates = {
         [lastLog.entity_id]: {
@@ -115,11 +116,13 @@ export function AuditTrail() {
         entityStates,
         'Test rollback point from Audit Trail UI'
       );
+      await loadData();
       alert('Test rollback point created successfully!');
-      loadData();
     } catch (error) {
       console.error('Failed to create test rollback point:', error);
       alert('Failed to create test rollback point');
+    } finally {
+      setLoading(false);
     }
   };
 

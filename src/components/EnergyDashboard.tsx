@@ -21,6 +21,7 @@ import { dbService } from '../services/database';
 import { EnergyConfiguration, energyConfigService } from '../services/energyConfigService';
 import { EnergyConfigEditor } from './EnergyConfigEditor';
 import { AlphaESSEnergyDashboard } from './AlphaESSEnergyDashboard';
+import { PowerFlowDiagram } from './PowerFlowDiagram';
 
 interface EnergyData {
   battery: {
@@ -237,103 +238,20 @@ export function EnergyDashboard() {
           </div>
         </div>
 
-        {/* Energy Flow Visualization */}
-        <Card className="p-8 bg-white shadow-xl">
-          <h2 className="text-xl font-semibold mb-6 text-gray-900">Energy Flow</h2>
-
-          {/* System Diagram */}
-          <div className="mb-8 flex justify-center">
-            <svg width="100%" viewBox="0 0 336 336" fill="none" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMidYMid meet" className="max-w-md">
-              <g transform="translate(44,59)">
-                <image width="300" height="184" xlinkHref="/img/realTime/house.png"></image>
-                <image width="35" x="58" y="101" xlinkHref="/img/realTime/equipment.png"></image>
-                <polyline points="74,105 74,70 125,70" stroke="rgba(134, 134, 134, 1)" strokeWidth="2" strokeDasharray="5" strokeOpacity="0.5"></polyline>
-                <line x1="26" y1="120" x2="64" y2="130" stroke="rgba(134, 134, 134, 1)" strokeWidth="2" strokeDasharray="5" strokeOpacity="0.5"></line>
-                <polyline points="81,136 112,144.5 112,138" stroke="rgba(134, 134, 134, 1)" strokeWidth="2" strokeDasharray="5" strokeOpacity="0.5"></polyline>
-              </g>
-              <line x1="201" y1="23" x2="201" y2="109" stroke="rgba(134, 134, 134, 1)" strokeWidth=".5"></line>
-              <line x1="161" y1="208" x2="161" y2="305" stroke="rgba(134, 134, 134, 1)" strokeWidth=".5"></line>
-              <line x1="118" y1="244" x2="118" y2="206" stroke="rgba(134, 134, 134, 1)" strokeWidth=".5"></line>
-            </svg>
+        {/* Real-time Power Flow */}
+        <Card className="bg-white shadow-xl">
+          <div className="p-6 border-b border-gray-200">
+            <h2 className="text-xl font-semibold text-gray-900">Real-time Power Flow</h2>
+            <p className="text-sm text-gray-600 mt-1">Live energy distribution across your system</p>
           </div>
-
-          <div className="grid grid-cols-4 gap-8 items-center">
-            {/* Solar */}
-            <div className="flex flex-col items-center space-y-3">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg">
-                <Sun className="w-12 h-12 text-white" />
-              </div>
-              <div className="text-center">
-                <p className="text-sm text-gray-600">Solar</p>
-                <p className="text-2xl font-bold text-gray-900">{formatPower(energyData.solar.power)}</p>
-                <p className="text-xs text-gray-500 mt-1">{energyData.solar.todayEnergy.toFixed(1)} kWh today</p>
-              </div>
-            </div>
-
-            {/* Battery */}
-            <div className="flex flex-col items-center space-y-3">
-              <div className={`w-24 h-24 rounded-full bg-gradient-to-br ${getBatteryGradient(energyData.battery.soc)} flex items-center justify-center shadow-lg relative`}>
-                <Battery className="w-12 h-12 text-white" />
-                {energyData.battery.charging ? (
-                  <ArrowDownCircle className="w-6 h-6 text-white absolute -bottom-1 -right-1 bg-green-500 rounded-full" />
-                ) : energyData.battery.power < 0 ? (
-                  <ArrowUpCircle className="w-6 h-6 text-white absolute -bottom-1 -right-1 bg-blue-500 rounded-full" />
-                ) : null}
-              </div>
-              <div className="text-center">
-                <p className="text-sm text-gray-600">Battery</p>
-                <p className="text-2xl font-bold text-gray-900">{energyData.battery.soc.toFixed(0)}%</p>
-                <p className={`text-xs font-medium mt-1 ${energyData.battery.charging ? 'text-green-600' : 'text-blue-600'}`}>
-                  {energyData.battery.charging ? 'Charging' : 'Discharging'} {formatPower(Math.abs(energyData.battery.power))}
-                </p>
-              </div>
-            </div>
-
-            {/* Grid */}
-            <div className="flex flex-col items-center space-y-3">
-              <div className={`w-24 h-24 rounded-full bg-gradient-to-br ${
-                energyData.grid.importing ? 'from-red-400 to-red-600' : 'from-green-400 to-green-600'
-              } flex items-center justify-center shadow-lg`}>
-                <Zap className="w-12 h-12 text-white" />
-              </div>
-              <div className="text-center">
-                <p className="text-sm text-gray-600">Grid</p>
-                <p className="text-2xl font-bold text-gray-900">{formatPower(energyData.grid.power)}</p>
-                <p className={`text-xs font-medium mt-1 ${energyData.grid.importing ? 'text-red-600' : 'text-green-600'}`}>
-                  {energyData.grid.importing ? 'Importing' : 'Exporting'}
-                </p>
-              </div>
-            </div>
-
-            {/* Home */}
-            <div className="flex flex-col items-center space-y-3">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-gray-600 to-gray-800 flex items-center justify-center shadow-lg">
-                <Home className="w-12 h-12 text-white" />
-              </div>
-              <div className="text-center">
-                <p className="text-sm text-gray-600">Home</p>
-                <p className="text-2xl font-bold text-gray-900">{formatPower(energyData.home.power)}</p>
-                <p className="text-xs text-gray-500 mt-1">{energyData.home.todayConsumption.toFixed(1)} kWh today</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Flow Lines */}
-          <div className="mt-8 flex justify-center">
-            <div className="flex items-center space-x-4 text-sm text-gray-600">
-              <div className="flex items-center">
-                <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
-                <span className="ml-2">Active Flow</span>
-              </div>
-              <div className="flex items-center">
-                <TrendingUp className="w-4 h-4 text-green-600" />
-                <span className="ml-2">Generation</span>
-              </div>
-              <div className="flex items-center">
-                <TrendingDown className="w-4 h-4 text-blue-600" />
-                <span className="ml-2">Consumption</span>
-              </div>
-            </div>
+          <div className="min-h-[400px]">
+            <PowerFlowDiagram
+              solar={energyData.solar.power / 1000}
+              battery={energyData.battery.power / 1000}
+              grid={energyData.grid.importing ? energyData.grid.power / 1000 : -(energyData.grid.power / 1000)}
+              home={energyData.home.power / 1000}
+              batterySoc={energyData.battery.soc}
+            />
           </div>
         </Card>
 
