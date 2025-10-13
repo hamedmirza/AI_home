@@ -188,20 +188,32 @@ class AILearningService {
         case 'lmstudio':
         default:
           const endpoint = `${config.lmstudioUrl}/v1/chat/completions`;
+          const requestBody = {
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userMessage }
+            ],
+            temperature: 0.7,
+            max_tokens: 500
+          };
+
+          console.log(`[AI] Sending to LM Studio:`, {
+            endpoint,
+            systemPromptLength: systemPrompt.length,
+            userMessageLength: userMessage.length,
+            totalChars: systemPrompt.length + userMessage.length
+          });
+
+          const startTime = performance.now();
           response = await fetch(endpoint, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-              messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userMessage }
-              ],
-              temperature: 0.7,
-              max_tokens: 500
-            })
+            body: JSON.stringify(requestBody)
           });
+          const fetchTime = performance.now() - startTime;
+          console.log(`[AI] LM Studio fetch completed in ${fetchTime.toFixed(0)}ms`);
           break;
       }
 
