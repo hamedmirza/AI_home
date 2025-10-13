@@ -980,21 +980,27 @@ Respond naturally as Grok AI - helpful and knowledgeable.`;
     try {
       // Helper function to find entity by name or ID
       const findEntity = (searchTerm: string, domain?: string): Entity | undefined => {
-        const cleanSearch = searchTerm.toLowerCase().trim();
+        const cleanSearch = searchTerm.toLowerCase().trim().replace(/\s+/g, ' ');
+        const cleanSearchNoSpaces = cleanSearch.replace(/\s+/g, '_');
 
         return entities.find(e => {
           const matchesDomain = !domain || e.entity_id.startsWith(`${domain}.`);
           const entityIdLower = e.entity_id.toLowerCase();
           const friendlyNameLower = (e.friendly_name || '').toLowerCase();
 
+          // Direct match
           const matchesId = entityIdLower.includes(cleanSearch);
           const matchesName = friendlyNameLower.includes(cleanSearch);
 
-          // Also try matching with underscores replaced by spaces
-          const entityIdSpaced = entityIdLower.replace(/_/g, ' ');
+          // Match with spaces replaced by underscores (for entity_id matching)
+          const matchesIdWithUnderscore = entityIdLower.includes(cleanSearchNoSpaces);
+
+          // Match entity ID without domain prefix and with underscores converted to spaces
+          const entityIdWithoutDomain = entityIdLower.split('.')[1] || '';
+          const entityIdSpaced = entityIdWithoutDomain.replace(/_/g, ' ');
           const matchesIdSpaced = entityIdSpaced.includes(cleanSearch);
 
-          return matchesDomain && (matchesId || matchesName || matchesIdSpaced);
+          return matchesDomain && (matchesId || matchesName || matchesIdSpaced || matchesIdWithUnderscore);
         });
       };
 
