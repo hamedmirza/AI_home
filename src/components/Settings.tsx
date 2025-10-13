@@ -459,7 +459,7 @@ export const Settings: React.FC<SettingsProps> = ({ onConnectionChange }) => {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-600">Configure your Home Assistant connection and preferences</p>
+        <p className="text-gray-600">Configure your backend connection and preferences</p>
       </div>
 
       {/* Connection Settings */}
@@ -467,7 +467,7 @@ export const Settings: React.FC<SettingsProps> = ({ onConnectionChange }) => {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Wifi className="w-5 h-5 text-blue-500" />
-            <span>Home Assistant Connection</span>
+            <span>Backend Connection</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
