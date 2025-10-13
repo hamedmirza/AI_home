@@ -18,6 +18,12 @@ interface Message {
   isUser: boolean;
   timestamp: Date;
   feedback?: 'up' | 'down' | null;
+  tokenUsage?: {
+    inputTokens: number;
+    outputTokens: number;
+    totalTokens: number;
+  };
+  provider?: string;
 }
 
 const SESSION_ID = 'main-session';
@@ -58,7 +64,9 @@ export function AIAssistant({ isConnected, onEntityUpdate }: AIAssistantProps) {
           text: msg.content,
           isUser: msg.role === 'user',
           timestamp: new Date(msg.created_at),
-          feedback: msg.metadata?.feedback || null
+          feedback: msg.metadata?.feedback || null,
+          tokenUsage: msg.metadata?.tokenUsage || undefined,
+          provider: msg.metadata?.provider || undefined,
         }));
 
         setMessages(loadedMessages);
@@ -119,7 +127,9 @@ export function AIAssistant({ isConnected, onEntityUpdate }: AIAssistantProps) {
             text: payload.new.content,
             isUser: payload.new.role === 'user',
             timestamp: new Date(payload.new.created_at),
-            feedback: payload.new.metadata?.feedback || null
+            feedback: payload.new.metadata?.feedback || null,
+            tokenUsage: payload.new.metadata?.tokenUsage || undefined,
+            provider: payload.new.metadata?.provider || undefined,
           };
 
           setMessages(prev => {
@@ -183,9 +193,14 @@ export function AIAssistant({ isConnected, onEntityUpdate }: AIAssistantProps) {
         entities = await homeAssistantService.getEntities();
       }
 
-      const response = await homeAssistantService.processAICommand(userMessageContent, entities);
+      const aiResponse = await homeAssistantService.processAICommand(userMessageContent, entities);
 
-      await dbService.addChatMessage(SESSION_ID, 'assistant', response);
+      console.log('[AIAssistant] Token usage:', aiResponse.tokenUsage);
+
+      await dbService.addChatMessage(SESSION_ID, 'assistant', aiResponse.text, {
+        tokenUsage: aiResponse.tokenUsage,
+        provider: aiResponse.provider
+      });
 
       if (onEntityUpdate && (userMessageContent.toLowerCase().includes('turn on') ||
           userMessageContent.toLowerCase().includes('turn off') ||
@@ -309,7 +324,9 @@ export function AIAssistant({ isConnected, onEntityUpdate }: AIAssistantProps) {
                     text: msg.content,
                     isUser: msg.role === 'user',
                     timestamp: new Date(msg.created_at),
-                    feedback: msg.metadata?.feedback || null
+                    feedback: msg.metadata?.feedback || null,
+                    tokenUsage: msg.metadata?.tokenUsage || undefined,
+                    provider: msg.metadata?.provider || undefined,
                   }));
                   setMessages(loadedMessages);
                 } catch (error) {
@@ -395,6 +412,21 @@ export function AIAssistant({ isConnected, onEntityUpdate }: AIAssistantProps) {
                   }`}>
                     {message.timestamp.toLocaleTimeString()}
                   </p>
+                  {!message.isUser && message.tokenUsage && (
+                    <div className="flex items-center gap-2 text-xs mt-1.5 text-gray-500 border-t border-gray-100 pt-1.5">
+                      <span className="font-medium">Tokens:</span>
+                      <span className="text-blue-600">{message.tokenUsage.inputTokens} in</span>
+                      <span className="text-gray-400">/</span>
+                      <span className="text-purple-600">{message.tokenUsage.outputTokens} out</span>
+                      <span className="text-gray-400">/</span>
+                      <span className="text-gray-700 font-medium">{message.tokenUsage.totalTokens} total</span>
+                      {message.provider && (
+                        <span className="ml-2 px-1.5 py-0.5 bg-gray-100 rounded text-xs">
+                          {message.provider}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
                 {!message.isUser && (
                   <div className="flex items-center space-x-2 mt-2">

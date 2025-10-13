@@ -18,6 +18,12 @@ interface Message {
   timestamp: Date;
   feedback?: 'up' | 'down' | null;
   responseTime?: number;
+  tokenUsage?: {
+    inputTokens: number;
+    outputTokens: number;
+    totalTokens: number;
+  };
+  provider?: string;
 }
 
 const SESSION_ID = 'main-session';
@@ -79,6 +85,8 @@ export function FloatingChat({ isConnected, onEntityUpdate }: FloatingChatProps)
           timestamp: new Date(msg.created_at),
           feedback: msg.metadata?.feedback || null,
           responseTime: msg.metadata?.responseTime || undefined,
+          tokenUsage: msg.metadata?.tokenUsage || undefined,
+          provider: msg.metadata?.provider || undefined,
         }));
 
         setMessages(loadedMessages);
@@ -120,6 +128,8 @@ export function FloatingChat({ isConnected, onEntityUpdate }: FloatingChatProps)
             timestamp: new Date(payload.new.created_at),
             feedback: payload.new.metadata?.feedback || null,
             responseTime: payload.new.metadata?.responseTime || undefined,
+            tokenUsage: payload.new.metadata?.tokenUsage || undefined,
+            provider: payload.new.metadata?.provider || undefined,
           };
 
           setMessages(prev => {
@@ -189,13 +199,19 @@ export function FloatingChat({ isConnected, onEntityUpdate }: FloatingChatProps)
         entities = await homeAssistantService.getEntities();
       }
 
-      const response = await homeAssistantService.processAICommand(userMessageContent, entities);
+      const aiResponse = await homeAssistantService.processAICommand(userMessageContent, entities);
 
       const endTime = performance.now();
       const responseTime = Math.round(endTime - startTime);
 
       console.log('[FloatingChat] Response time:', responseTime, 'ms');
-      await dbService.addChatMessage(SESSION_ID, 'assistant', response, { responseTime });
+      console.log('[FloatingChat] Token usage:', aiResponse.tokenUsage);
+
+      await dbService.addChatMessage(SESSION_ID, 'assistant', aiResponse.text, {
+        responseTime,
+        tokenUsage: aiResponse.tokenUsage,
+        provider: aiResponse.provider
+      });
 
       if (onEntityUpdate && (userMessageContent.toLowerCase().includes('turn on') ||
           userMessageContent.toLowerCase().includes('turn off') ||
@@ -324,6 +340,21 @@ export function FloatingChat({ isConnected, onEntityUpdate }: FloatingChatProps)
                               </span>
                             )}
                           </div>
+                          {!message.isUser && message.tokenUsage && (
+                            <div className="flex items-center gap-2 text-xs mt-1 text-gray-500">
+                              <span className="font-medium">Tokens:</span>
+                              <span className="text-blue-600">{message.tokenUsage.inputTokens} in</span>
+                              <span className="text-gray-400">/</span>
+                              <span className="text-purple-600">{message.tokenUsage.outputTokens} out</span>
+                              <span className="text-gray-400">/</span>
+                              <span className="text-gray-700 font-medium">{message.tokenUsage.totalTokens} total</span>
+                              {message.provider && (
+                                <span className="ml-2 px-1.5 py-0.5 bg-gray-100 rounded text-xs">
+                                  {message.provider}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
                         {!message.isUser && (
                           <div className="flex items-center space-x-1 mt-1">

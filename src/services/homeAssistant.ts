@@ -1,6 +1,16 @@
 import { Entity, EnergyData } from '../types/homeAssistant';
 import { aiContextService } from './aiContextService';
 
+export interface AIResponse {
+  text: string;
+  tokenUsage?: {
+    inputTokens: number;
+    outputTokens: number;
+    totalTokens: number;
+  };
+  provider?: string;
+}
+
 class HomeAssistantService {
   private wsConnection: WebSocket | null = null;
   private apiUrl: string = '';
@@ -556,9 +566,12 @@ class HomeAssistantService {
     }
   }
 
-  async processAICommand(command: string, entities: Entity[] = []): Promise<string> {
+  async processAICommand(command: string, entities: Entity[] = []): Promise<AIResponse> {
     if (!this.connected) {
-      return "I'm your Grok AI assistant! While Home Assistant isn't connected, I can still help you with smart home guidance, dashboard creation tips, and energy management advice. What would you like to know?";
+      return {
+        text: "I'm your Grok AI assistant! While Home Assistant isn't connected, I can still help you with smart home guidance, dashboard creation tips, and energy management advice. What would you like to know?",
+        provider: 'none'
+      };
     }
 
     // Get AI provider settings
@@ -930,25 +943,51 @@ Respond naturally and helpfully as Grok AI. When controlling devices, acknowledg
         if (response?.ok) {
           const data = await response.json();
           let aiResponse = '';
+          let tokenUsage: { inputTokens: number; outputTokens: number; totalTokens: number } | undefined;
 
           switch (provider) {
             case 'openai':
             case 'grok':
             case 'lmstudio':
               aiResponse = data.choices[0]?.message?.content || '';
+              if (data.usage) {
+                tokenUsage = {
+                  inputTokens: data.usage.prompt_tokens || 0,
+                  outputTokens: data.usage.completion_tokens || 0,
+                  totalTokens: data.usage.total_tokens || 0
+                };
+              }
               break;
             case 'claude':
               aiResponse = data.content[0]?.text || '';
+              if (data.usage) {
+                tokenUsage = {
+                  inputTokens: data.usage.input_tokens || 0,
+                  outputTokens: data.usage.output_tokens || 0,
+                  totalTokens: (data.usage.input_tokens || 0) + (data.usage.output_tokens || 0)
+                };
+              }
               break;
             case 'gemini':
               aiResponse = data.candidates[0]?.content?.parts[0]?.text || '';
+              if (data.usageMetadata) {
+                tokenUsage = {
+                  inputTokens: data.usageMetadata.promptTokenCount || 0,
+                  outputTokens: data.usageMetadata.candidatesTokenCount || 0,
+                  totalTokens: data.usageMetadata.totalTokenCount || 0
+                };
+              }
               break;
           }
 
           if (aiResponse) {
             // Try to execute any device commands mentioned in the response
             await this.executeDeviceCommands(command, currentEntities, automations, scenes, scripts);
-            return aiResponse;
+            return {
+              text: aiResponse,
+              tokenUsage,
+              provider
+            };
           }
         } else {
           const errorText = await response?.text().catch(() => 'Unknown error');
@@ -960,18 +999,30 @@ Respond naturally and helpfully as Grok AI. When controlling devices, acknowledg
         if (provider === 'lmstudio') {
           if (error instanceof Error) {
             if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-              return "❌ Unable to connect to LM Studio. Please check:\n\n1. LM Studio is running\n2. Local server is started (look for the server tab)\n3. A model is loaded and ready\n4. Server is accessible at: " + ((aiConfig as any).lmstudioUrl || 'http://localhost:1234') + "\n5. CORS is enabled in LM Studio settings\n\nTry sending your message again once LM Studio is ready.";
+              return {
+                text: "❌ Unable to connect to LM Studio. Please check:\n\n1. LM Studio is running\n2. Local server is started (look for the server tab)\n3. A model is loaded and ready\n4. Server is accessible at: " + ((aiConfig as any).lmstudioUrl || 'http://localhost:1234') + "\n5. CORS is enabled in LM Studio settings\n\nTry sending your message again once LM Studio is ready.",
+                provider: 'lmstudio'
+              };
             }
             if (error.message.includes('timed out') || error.message.includes('TimeoutError')) {
-              return "⏱️ LM Studio is taking too long to respond. This might mean:\n\n1. The model is still loading\n2. Your computer is under heavy load\n3. The model is too large for your hardware\n\nTry a smaller/faster model or wait a moment and try again.";
+              return {
+                text: "⏱️ LM Studio is taking too long to respond. This might mean:\n\n1. The model is still loading\n2. Your computer is under heavy load\n3. The model is too large for your hardware\n\nTry a smaller/faster model or wait a moment and try again.",
+                provider: 'lmstudio'
+              };
             }
           }
-          return "⚠️ LM Studio error: " + (error instanceof Error ? error.message : 'Unknown error') + "\n\nPlease check that LM Studio is running with a model loaded.";
+          return {
+            text: "⚠️ LM Studio error: " + (error instanceof Error ? error.message : 'Unknown error') + "\n\nPlease check that LM Studio is running with a model loaded.",
+            provider: 'lmstudio'
+          };
         }
 
         // CORS errors for other providers
         if (error instanceof Error && (error.message.includes('Failed to fetch') || error.message.includes('CORS'))) {
-          return "I'm Grok AI, your smart home assistant! I'm ready to help you control devices, create dashboards, analyze energy usage, and provide Home Assistant guidance. What would you like to do?";
+          return {
+            text: "I'm Grok AI, your smart home assistant! I'm ready to help you control devices, create dashboards, analyze energy usage, and provide Home Assistant guidance. What would you like to do?",
+            provider
+          };
         }
 
         // For other errors, fall through to Home Assistant conversation API
@@ -997,7 +1048,10 @@ Respond naturally and helpfully as Grok AI. When controlling devices, acknowledg
       }
 
       const result = await response.json();
-      return result.response?.speech?.plain?.speech || "I'm Grok AI and I've processed your request! How else can I help with your smart home?";
+      return {
+        text: result.response?.speech?.plain?.speech || "I'm Grok AI and I've processed your request! How else can I help with your smart home?",
+        provider: 'homeassistant'
+      };
     } catch (error) {
       console.error('Failed to process AI command:', error);
       throw error;
