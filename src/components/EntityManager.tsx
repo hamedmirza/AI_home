@@ -344,7 +344,7 @@ export const EntityManager: React.FC<EntityManagerProps> = ({ entities, onEntity
       </Card>
 
       {/* Entity Grid/List View */}
-      {viewMode === 'grid' ? (
+      {viewMode === 'list'' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEntities.map(entity => (
             <Card key={entity.entity_id} className="hover:shadow-lg transition-all duration-200">
