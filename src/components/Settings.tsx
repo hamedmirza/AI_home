@@ -1209,7 +1209,7 @@ export const Settings: React.FC<SettingsProps> = ({ onConnectionChange }) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                General Electricity Price (per kWh)
+                General Price (per kWh)
                 {preferences.pricingMode === 'dynamic' && (
                   <span className="ml-2 text-xs text-blue-600 font-normal">(Auto-updating)</span>
                 )}
