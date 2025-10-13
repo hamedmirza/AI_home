@@ -9,16 +9,17 @@ import { EnergyManager } from './components/EnergyManager';
 import { EnergyDashboard } from './components/EnergyDashboard';
 import { AIAssistant } from './components/AIAssistant';
 import { Automations } from './components/Automations';
-import { Settings } from './components/Settings';
+import { SettingsNew as Settings } from './components/SettingsNew';
 import { FloatingChat } from './components/FloatingChat';
 import { SmartDashboard } from './components/SmartDashboard';
 import { Admin } from './components/Admin';
+import { AuditTrail } from './components/AuditTrail';
 import { Entity } from './types/homeAssistant';
 import { homeAssistantService } from './services/homeAssistant';
 import { energyPricingService } from './services/energyPricingService';
-import { Home, Settings as SettingsIcon, Zap, Bot, Grid3x3 as Grid3X3, Menu, X, LayoutDashboard, Activity, Battery, Shield } from 'lucide-react';
+import { Home, Settings as SettingsIcon, Zap, Bot, Grid3x3 as Grid3X3, Menu, X, LayoutDashboard, Activity, Battery, Shield, FileText } from 'lucide-react';
 
-type ActiveTab = 'overview' | 'dashboards' | 'smart-dashboards' | 'entities' | 'energy' | 'energy-dashboard' | 'automations' | 'ai' | 'admin' | 'settings';
+type ActiveTab = 'overview' | 'dashboards' | 'smart-dashboards' | 'entities' | 'energy' | 'energy-dashboard' | 'automations' | 'ai' | 'admin' | 'audit' | 'settings';
 
 function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
@@ -283,6 +284,12 @@ function App() {
       description: 'System diagnostics'
     },
     {
+      id: 'audit' as ActiveTab,
+      name: 'Audit Trail',
+      icon: FileText,
+      description: 'Action logs and traces'
+    },
+    {
       id: 'settings' as ActiveTab,
       name: 'Settings',
       icon: SettingsIcon,
@@ -318,6 +325,8 @@ function App() {
         return <AIAssistant isConnected={isConnected} onEntityUpdate={loadEntities} />;
       case 'admin':
         return <Admin />;
+      case 'audit':
+        return <AuditTrail />;
       case 'settings':
         return <Settings onConnectionChange={setIsConnected} />;
       default:

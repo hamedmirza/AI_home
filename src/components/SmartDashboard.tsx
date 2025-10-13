@@ -24,6 +24,7 @@ interface SmartCard {
   entityId?: string;
   entityIds?: string[];
   config: any;
+  displayMode?: 'compact' | 'detailed' | 'minimal';
 }
 
 export function SmartDashboard() {
@@ -41,6 +42,7 @@ export function SmartDashboard() {
   const [newCardTitle, setNewCardTitle] = useState('');
   const [newCardEntityId, setNewCardEntityId] = useState('');
   const [newCardEntityIds, setNewCardEntityIds] = useState<string[]>([]);
+  const [newCardDisplayMode, setNewCardDisplayMode] = useState<'compact' | 'detailed' | 'minimal'>('detailed');
 
   useEffect(() => {
     loadData();
@@ -150,7 +152,8 @@ export function SmartDashboard() {
       title: newCardTitle,
       entityId: newCardType === 'entity' ? newCardEntityId : undefined,
       entityIds: newCardType === 'energy-flow' ? newCardEntityIds : undefined,
-      config: {}
+      config: {},
+      displayMode: newCardDisplayMode
     };
 
     dashboard.cards.push(newCard);
@@ -231,15 +234,31 @@ export function SmartDashboard() {
                 />
               )}
             </div>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">State:</span>
+            {(card.displayMode === 'detailed' || !card.displayMode) && (
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">State:</span>
+                  <span className="font-medium text-gray-900 dark:text-white">
+                    {entity.state}
+                    {entity.unit_of_measurement && ` ${entity.unit_of_measurement}`}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Entity:</span>
+                  <span className="font-mono text-xs text-gray-500 dark:text-gray-400">
+                    {entity.entity_id}
+                  </span>
+                </div>
+              </div>
+            )}
+            {card.displayMode === 'compact' && (
+              <div className="text-sm">
                 <span className="font-medium text-gray-900 dark:text-white">
                   {entity.state}
                   {entity.unit_of_measurement && ` ${entity.unit_of_measurement}`}
                 </span>
               </div>
-            </div>
+            )}
           </div>
         </Card>
       );
@@ -460,6 +479,24 @@ export function SmartDashboard() {
                     <option value="energy-flow">Energy Flow</option>
                     <option value="stats">Device Statistics</option>
                   </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Display Mode
+                  </label>
+                  <select
+                    value={newCardDisplayMode}
+                    onChange={(e) => setNewCardDisplayMode(e.target.value as any)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  >
+                    <option value="detailed">Detailed (Show all entity info)</option>
+                    <option value="compact">Compact (Show state only)</option>
+                    <option value="minimal">Minimal (Control only)</option>
+                  </select>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Choose how much information to display on the card
+                  </p>
                 </div>
 
                 <div>
