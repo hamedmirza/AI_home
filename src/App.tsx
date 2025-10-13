@@ -8,18 +8,17 @@ import { EntityManager } from './components/EntityManager';
 import { EnergyManager } from './components/EnergyManager';
 import { EnergyDashboard } from './components/EnergyDashboard';
 import { AIAssistant } from './components/AIAssistant';
-import { AIInsights } from './components/AIInsights';
 import { Automations } from './components/Automations';
 import { Settings } from './components/Settings';
 import { FloatingChat } from './components/FloatingChat';
 import { SmartDashboard } from './components/SmartDashboard';
-import { MCPTest } from './components/MCPTest';
+import { Admin } from './components/Admin';
 import { Entity } from './types/homeAssistant';
 import { homeAssistantService } from './services/homeAssistant';
 import { energyPricingService } from './services/energyPricingService';
-import { Home, Settings as SettingsIcon, Zap, Bot, Grid3x3 as Grid3X3, Menu, X, LayoutDashboard, Activity, Battery, Brain, TestTube } from 'lucide-react';
+import { Home, Settings as SettingsIcon, Zap, Bot, Grid3x3 as Grid3X3, Menu, X, LayoutDashboard, Activity, Battery, Shield } from 'lucide-react';
 
-type ActiveTab = 'overview' | 'dashboards' | 'smart-dashboards' | 'entities' | 'energy' | 'energy-dashboard' | 'automations' | 'ai' | 'ai-insights' | 'mcp-test' | 'settings';
+type ActiveTab = 'overview' | 'dashboards' | 'smart-dashboards' | 'entities' | 'energy' | 'energy-dashboard' | 'automations' | 'ai' | 'admin' | 'settings';
 
 function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
@@ -278,16 +277,10 @@ function App() {
       description: 'Natural language control'
     },
     {
-      id: 'ai-insights' as ActiveTab,
-      name: 'AI Learning',
-      icon: Brain,
-      description: 'AI learning dashboard'
-    },
-    {
-      id: 'mcp-test' as ActiveTab,
-      name: 'MCP Test',
-      icon: TestTube,
-      description: 'Test MCP server integration'
+      id: 'admin' as ActiveTab,
+      name: 'Admin',
+      icon: Shield,
+      description: 'System diagnostics'
     },
     {
       id: 'settings' as ActiveTab,
@@ -323,10 +316,8 @@ function App() {
         return <Automations entities={entities} isConnected={isConnected} />;
       case 'ai':
         return <AIAssistant isConnected={isConnected} onEntityUpdate={loadEntities} />;
-      case 'ai-insights':
-        return <AIInsights />;
-      case 'mcp-test':
-        return <MCPTest />;
+      case 'admin':
+        return <Admin />;
       case 'settings':
         return <Settings onConnectionChange={setIsConnected} />;
       default:
