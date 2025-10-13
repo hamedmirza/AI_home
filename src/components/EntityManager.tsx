@@ -478,7 +478,7 @@ export const EntityManager: React.FC<EntityManagerProps> = ({ entities, onEntity
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       <input
                         type="checkbox"
                         checked={selectedEntities.size === filteredEntities.length && filteredEntities.length > 0}
@@ -494,19 +494,19 @@ export const EntityManager: React.FC<EntityManagerProps> = ({ entities, onEntity
                         className="rounded border-gray-300"
                       />
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Entity
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Type
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       State
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Control
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -514,7 +514,7 @@ export const EntityManager: React.FC<EntityManagerProps> = ({ entities, onEntity
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredEntities.map(entity => (
                     <tr key={entity.entity_id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-3 py-2 whitespace-nowrap">
                         <input
                           type="checkbox"
                           checked={selectedEntities.has(entity.entity_id)}
@@ -531,23 +531,23 @@ export const EntityManager: React.FC<EntityManagerProps> = ({ entities, onEntity
                           className="rounded border-gray-300"
                         />
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center space-x-3">
+                      <td className="px-3 py-2 whitespace-nowrap">
+                        <div className="flex items-center space-x-2">
                           {getEntityIcon(entity.entity_id, entity.device_class)}
                           <div>
-                            <div className="text-sm font-medium text-gray-900">
+                            <div className="text-xs font-medium text-gray-900">
                               {entity.friendly_name || entity.entity_id}
                             </div>
-                            <div className="text-sm text-gray-500">{entity.entity_id}</div>
+                            <div className="text-xs text-gray-500">{entity.entity_id}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-3 py-2 whitespace-nowrap">
                         <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
                           {entity.entity_id.split('.')[0]}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-3 py-2 whitespace-nowrap">
                         {renderEntityValue(entity)}
                         {editingEntity?.entity_id === entity.entity_id && (
                           <div className="flex space-x-1 mt-2">
@@ -560,9 +560,9 @@ export const EntityManager: React.FC<EntityManagerProps> = ({ entities, onEntity
                           </div>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {(entity.entity_id.startsWith('light.') || 
-                          entity.entity_id.startsWith('switch.') || 
+                      <td className="px-3 py-2 whitespace-nowrap">
+                        {(entity.entity_id.startsWith('light.') ||
+                          entity.entity_id.startsWith('switch.') ||
                           entity.entity_id.startsWith('input_boolean.')) && (
                           <Switch
                             checked={entity.state === 'on'}
@@ -570,7 +570,7 @@ export const EntityManager: React.FC<EntityManagerProps> = ({ entities, onEntity
                           />
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-3 py-2 whitespace-nowrap">
                         <div className="flex items-center space-x-2">
                           {canEditEntity(entity) && (
                             <Button 
