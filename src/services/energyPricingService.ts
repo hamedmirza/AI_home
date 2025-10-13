@@ -263,16 +263,19 @@ class EnergyPricingService {
   startDynamicPricing(intervalMinutes: number = 5): void {
     this.stopDynamicPricing();
 
-    console.log(`Starting dynamic pricing updates every ${intervalMinutes} minutes`);
+    console.log(`[ENERGY PRICING] Starting dynamic pricing updates every ${intervalMinutes} minutes`);
+    console.log(`[ENERGY PRICING] Next update in ${intervalMinutes} minutes`);
 
     this.updateInterval = setInterval(async () => {
       try {
+        console.log('[ENERGY PRICING] Running scheduled price update...');
         await this.updateDynamicPrices();
       } catch (error) {
-        console.error('Dynamic price update failed:', error);
+        console.error('[ENERGY PRICING] Dynamic price update failed:', error);
       }
     }, intervalMinutes * 60 * 1000);
 
+    console.log('[ENERGY PRICING] Running initial price update...');
     this.updateDynamicPrices();
   }
 
@@ -286,14 +289,18 @@ class EnergyPricingService {
 
   private async updateDynamicPrices(): Promise<void> {
     try {
+      console.log('[ENERGY PRICING] Checking for price updates...');
       const currentPricing = await this.getPricing();
 
       if (currentPricing.pricing_mode !== 'dynamic') {
+        console.log('[ENERGY PRICING] Mode is not dynamic, stopping...');
         this.stopDynamicPricing();
         return;
       }
 
       const entities = await dbService.getEntities();
+      console.log(`[ENERGY PRICING] Found ${entities.length} entities to search`);
+
       const generalPriceEntity = entities.find(e =>
         e.entity_id.includes('general_price') ||
         e.entity_id.includes('electricity_price') ||
@@ -304,6 +311,11 @@ class EnergyPricingService {
         e.entity_id.includes('export_price') ||
         e.entity_id.includes('feedin_tariff')
       );
+
+      console.log('[ENERGY PRICING] Found price entities:', {
+        generalPriceEntity: generalPriceEntity?.entity_id || 'none',
+        feedInEntity: feedInEntity?.entity_id || 'none'
+      });
 
       let newGeneralPrice = currentPricing.general_price;
       let newFeedInTariff = currentPricing.feed_in_tariff;
@@ -326,7 +338,12 @@ class EnergyPricingService {
       }
 
       if (updated) {
-        console.log('Updating dynamic prices:', { newGeneralPrice, newFeedInTariff });
+        console.log('[ENERGY PRICING] ✅ Price change detected! Updating:', {
+          newGeneralPrice,
+          newFeedInTariff,
+          oldGeneralPrice: currentPricing.general_price,
+          oldFeedInTariff: currentPricing.feed_in_tariff
+        });
 
         const supabase = dbService.getClient();
         const { data: { user } } = await supabase.auth.getUser();
@@ -364,9 +381,11 @@ class EnergyPricingService {
             last_updated: new Date().toISOString()
           });
         }
+      } else {
+        console.log('[ENERGY PRICING] No price changes detected');
       }
     } catch (error) {
-      console.error('Failed to update dynamic prices:', error);
+      console.error('[ENERGY PRICING] ❌ Failed to update dynamic prices:', error);
     }
   }
 
