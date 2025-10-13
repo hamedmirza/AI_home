@@ -978,50 +978,91 @@ Respond naturally as Grok AI - helpful and knowledgeable.`;
     console.log('[executeDeviceCommands] Available entities:', entities.length);
 
     try {
-      // Helper function to find entity by name or ID
+      // Helper function to find entity by name or ID with smart scoring
       const findEntity = (searchTerm: string, domain?: string): Entity | undefined => {
         const cleanSearch = searchTerm.toLowerCase().trim().replace(/\s+/g, ' ');
         const cleanSearchNoSpaces = cleanSearch.replace(/\s+/g, '_');
 
         console.log('[findEntity] Searching for:', cleanSearch, 'in domain:', domain || 'any');
 
-        const matches = entities.filter(e => {
+        // Score each entity based on how well it matches
+        const scoredMatches: Array<{ entity: Entity; score: number; reason: string }> = [];
+
+        for (const e of entities) {
           const matchesDomain = !domain || e.entity_id.startsWith(`${domain}.`);
-          if (!matchesDomain) return false;
+          if (!matchesDomain) continue;
 
           const entityIdLower = e.entity_id.toLowerCase();
           const friendlyNameLower = (e.friendly_name || '').toLowerCase();
-
-          // Direct match
-          const matchesId = entityIdLower.includes(cleanSearch);
-          const matchesName = friendlyNameLower.includes(cleanSearch);
-
-          // Match with spaces replaced by underscores (for entity_id matching)
-          const matchesIdWithUnderscore = entityIdLower.includes(cleanSearchNoSpaces);
-
-          // Match entity ID without domain prefix and with underscores converted to spaces
           const entityIdWithoutDomain = entityIdLower.split('.')[1] || '';
           const entityIdSpaced = entityIdWithoutDomain.replace(/_/g, ' ');
-          const matchesIdSpaced = entityIdSpaced.includes(cleanSearch);
 
-          const matched = matchesId || matchesName || matchesIdSpaced || matchesIdWithUnderscore;
+          let score = 0;
+          let reason = '';
 
-          if (matched) {
-            console.log('[findEntity] Potential match:', e.entity_id, 'friendly_name:', e.friendly_name,
-                       'matchesId:', matchesId, 'matchesName:', matchesName,
-                       'matchesIdSpaced:', matchesIdSpaced, 'matchesIdWithUnderscore:', matchesIdWithUnderscore);
+          // Exact entity_id match (highest priority) - e.g., "light.upstairs_6"
+          if (entityIdLower === cleanSearchNoSpaces || entityIdLower === `light.${cleanSearchNoSpaces}`) {
+            score = 1000;
+            reason = 'exact entity_id';
+          }
+          // Exact friendly_name match
+          else if (friendlyNameLower === cleanSearch) {
+            score = 900;
+            reason = 'exact friendly_name';
+          }
+          // Exact match of entity_id without domain (with spaces converted)
+          else if (entityIdSpaced === cleanSearch) {
+            score = 850;
+            reason = 'exact entity_id (spaced)';
+          }
+          // Exact match of entity_id part without domain
+          else if (entityIdWithoutDomain === cleanSearchNoSpaces) {
+            score = 800;
+            reason = 'exact entity_id part';
+          }
+          // Friendly name contains ALL words from search
+          else if (cleanSearch.split(' ').every(word => friendlyNameLower.includes(word))) {
+            score = 700;
+            reason = 'friendly_name contains all words';
+          }
+          // Entity ID spaced contains ALL words from search
+          else if (cleanSearch.split(' ').every(word => entityIdSpaced.includes(word))) {
+            score = 650;
+            reason = 'entity_id contains all words';
+          }
+          // Contains the search term
+          else if (friendlyNameLower.includes(cleanSearch)) {
+            score = 500;
+            reason = 'friendly_name contains search';
+          }
+          else if (entityIdSpaced.includes(cleanSearch)) {
+            score = 450;
+            reason = 'entity_id contains search';
+          }
+          // Contains search with underscores
+          else if (entityIdLower.includes(cleanSearchNoSpaces)) {
+            score = 400;
+            reason = 'entity_id contains search (underscored)';
           }
 
-          return matched;
-        });
-
-        console.log('[findEntity] Found', matches.length, 'potential matches');
-
-        if (matches.length > 0) {
-          console.log('[findEntity] Returning first match:', matches[0].entity_id, matches[0].friendly_name);
+          if (score > 0) {
+            scoredMatches.push({ entity: e, score, reason });
+            console.log('[findEntity] Match:', e.entity_id, '|', e.friendly_name, '| score:', score, '| reason:', reason);
+          }
         }
 
-        return matches[0];
+        // Sort by score descending
+        scoredMatches.sort((a, b) => b.score - a.score);
+
+        console.log('[findEntity] Found', scoredMatches.length, 'matches');
+
+        if (scoredMatches.length > 0) {
+          const best = scoredMatches[0];
+          console.log('[findEntity] Best match:', best.entity.entity_id, '|', best.entity.friendly_name, '| score:', best.score, '| reason:', best.reason);
+          return best.entity;
+        }
+
+        return undefined;
       };
 
       // Extract potential entity names from command (multi-word support)
