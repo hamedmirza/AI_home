@@ -4,12 +4,13 @@ import { Button } from './ui/Button';
 import { Switch } from './ui/Switch';
 import { Entity } from '../types/homeAssistant';
 import { homeAssistantService } from '../services/homeAssistant';
-import { 
-  Home, 
-  Lightbulb, 
-  Power, 
-  Thermometer, 
-  Zap, 
+import { AISuggestions } from './AISuggestions';
+import {
+  Home,
+  Lightbulb,
+  Power,
+  Thermometer,
+  Zap,
   TrendingUp,
   Wifi,
   AlertCircle
@@ -248,6 +249,9 @@ export const Overview: React.FC<OverviewProps> = ({ entities, onEntityToggle, is
           </div>
         </CardContent>
       </Card>
+
+      {/* AI Suggestions Section */}
+      <AISuggestions entities={entities} />
     </div>
   );
 };

@@ -397,38 +397,99 @@ Phase 2 implements a strict allowlist of safe services:
 }
 ```
 
-## Phase 3: Audit & Traces 📋 (Planned)
+## Phase 3: Audit & Traces ✅ (Active)
 
-Phase 3 will add comprehensive logging and audit capabilities:
+Phase 3 adds comprehensive logging, audit trails, and AI-powered suggestions.
 
-### Planned Features
+### Action Logging
 
-**Action Logging:**
-- Record all AI-initiated actions with timestamps
-- Store reasoning and context for each action
-- Link actions to user sessions and conversations
+All AI-initiated actions are automatically logged with:
+- **Timestamp** - When the action occurred
+- **Entity & Service** - What was controlled
+- **Reason** - AI's explanation for the action
+- **Source** - ai_assistant, user_manual, automation, or voice
+- **Success/Failure** - Action outcome with error details
+- **Duration** - Response time in milliseconds
+- **Before/After States** - State changes for rollback
 
-**Audit Trail:**
-- Complete history of all device state changes
-- Who/what triggered each action (user, automation, AI)
-- Before/after states for rollback
+**Usage:**
+```typescript
+import { auditService } from './services/auditService';
 
-**Rollback Capabilities:**
-- Undo last N actions
-- Restore previous states
-- Time-based state recovery
+// Logs are created automatically by unifiedAIService
+// View logs:
+const logs = await auditService.getActionLogs(50);
+const history = await auditService.getEntityHistory('light.living_room');
+const stats = await auditService.getActionStats();
+```
 
-**Analytics:**
-- Action frequency and patterns
+### AI Suggestions System
+
+The system generates smart suggestions based on:
+- **Usage Patterns** - Frequent manual controls → automation suggestions
+- **Energy Analysis** - High consumption → cost-saving recommendations
+- **Security** - Lights left on → optimization suggestions
+- **Behavioral Learning** - Repeated actions → convenience improvements
+
+**Suggestion Categories:**
+- 🔋 **Energy** - Cost savings and efficiency
+- 🛡️ **Security** - Safety and protection
+- ⚡ **Convenience** - Automation opportunities
+- 🛠️ **Maintenance** - Device health and optimization
+- ✨ **Comfort** - Environment improvements
+
+**Viewing Suggestions:**
+- Suggestions appear on the Overview page
+- Filter by status: Pending, Accepted, Implemented
+- Each suggestion includes confidence score and impact level
+- Accept, reject, or implement with one click
+
+**Generating Suggestions:**
+```typescript
+// Manual generation
+const suggestions = await auditService.generateSmartSuggestions(entities, actionLogs);
+
+// Suggestions include:
+// - title, description, confidence (0-1), impact (high/medium/low)
+// - entities_involved, category, supporting data
+// - status tracking (pending/accepted/rejected/implemented)
+```
+
+### Rollback Points
+
+Create restore points before risky actions:
+```typescript
+await auditService.createRollbackPoint(
+  actionLogId,
+  { 'light.bedroom': 'on', 'climate.home': '22' },
+  'Before AI optimization'
+);
+
+// List available rollbacks
+const points = await auditService.getRollbackPoints();
+```
+
+### Analytics & Insights
+
+**Action Statistics:**
+- Total actions by source (AI, manual, automation)
 - Success/failure rates
-- Response time metrics
-- Cost analysis for AI operations
+- Average response times
+- Entity-specific history
+
+**Smart Suggestions:**
+- Pattern-based automation recommendations
+- Energy optimization opportunities
+- Security improvements
+- Convenience enhancements
 
 ### Implementation Status
-- 🔄 Database schema design in progress
-- 📋 Action logging service planned
-- 📋 Rollback mechanism planned
-- 📋 Admin audit interface planned
+- ✅ **Database Schema** - Complete with RLS policies
+- ✅ **Action Logging Service** - Auto-logging in unifiedAIService
+- ✅ **AI Suggestions Engine** - Pattern analysis and generation
+- ✅ **Rollback System** - Create and restore points
+- ✅ **UI Components** - AISuggestions component with filtering
+- ✅ **Overview Integration** - Suggestions shown on main dashboard
 
 ## Error Handling
 

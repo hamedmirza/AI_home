@@ -2,6 +2,7 @@ import { mcpService } from './mcpService';
 import { dbService } from './database';
 import { aiContextService } from './aiContextService';
 import { energyPatternService } from './energyPatternService';
+import { auditService } from './auditService';
 
 interface AIConfig {
   provider: 'openai' | 'claude' | 'gemini' | 'grok' | 'lmstudio';
@@ -98,6 +99,10 @@ class UnifiedAIService {
 
         for (const action of aiResponse.actions) {
           if (action.type === 'call_service' && action.domain && action.service) {
+            const startTime = performance.now();
+            let success = false;
+            let errorMessage: string | undefined;
+
             try {
               console.log('[UnifiedAI] Executing action:', action);
               await mcpService.callService({
@@ -106,9 +111,26 @@ class UnifiedAIService {
                 entity_id: action.entity_id,
                 data: action.data
               });
+              success = true;
             } catch (error) {
               console.error('[UnifiedAI] Action failed:', error);
-              aiResponse.text += `\n\n⚠️ Failed to ${action.service} ${action.entity_id}: ${error}`;
+              errorMessage = error instanceof Error ? error.message : String(error);
+              aiResponse.text += `\n\n⚠️ Failed to ${action.service} ${action.entity_id}: ${errorMessage}`;
+            } finally {
+              const duration = performance.now() - startTime;
+
+              // Log to audit trail
+              await auditService.logAction({
+                action_type: 'service_call',
+                entity_id: action.entity_id || 'unknown',
+                service: `${action.domain}.${action.service}`,
+                data: action.data,
+                reason: aiResponse.text.substring(0, 200),
+                source: 'ai_assistant',
+                success,
+                error_message: errorMessage,
+                duration_ms: Math.round(duration)
+              });
             }
           }
         }
