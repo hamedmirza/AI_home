@@ -163,63 +163,174 @@ export const Overview: React.FC<OverviewProps> = ({ entities, onEntityToggle, is
         </Card>
       </div>
 
-      {/* Quick Controls */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Card Types Showcase */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Gauge Card - Battery Level */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Lightbulb className="w-5 h-5 text-yellow-500" />
-              <span>Lights</span>
-            </CardTitle>
+            <CardTitle>Battery Level (Gauge)</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {lightEntities.slice(0, 4).map(entity => (
-                <div key={entity.entity_id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-gray-900">{entity.friendly_name}</p>
-                    <p className="text-sm text-gray-500">
-                      {entity.state === 'on' ? 'On' : 'Off'}
-                      {entity.attributes.brightness && ` • ${Math.round((entity.attributes.brightness / 255) * 100)}%`}
-                    </p>
+            {(() => {
+              const batteryEntity = sensorEntities.find(e => e.device_class === 'battery') || sensorEntities[0];
+              if (!batteryEntity) return <div className="text-center text-gray-400 py-8">No sensor available</div>;
+              const value = parseFloat(batteryEntity.state) || 75;
+              const max = 100;
+              const percentage = Math.min((value / max) * 100, 100);
+
+              return (
+                <div className="text-center">
+                  <div className="relative w-32 h-32 mx-auto mb-3">
+                    <svg className="transform -rotate-90 w-32 h-32">
+                      <circle cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="8" fill="none" className="text-gray-200" />
+                      <circle
+                        cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="8" fill="none"
+                        strokeDasharray={`${2 * Math.PI * 56}`}
+                        strokeDashoffset={`${2 * Math.PI * 56 * (1 - percentage / 100)}`}
+                        className="text-blue-600 transition-all duration-500"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-2xl font-bold text-gray-900">{value.toFixed(0)}</span>
+                      <span className="text-xs text-gray-500">{batteryEntity.unit_of_measurement || '%'}</span>
+                    </div>
                   </div>
-                  <Switch
-                    checked={entity.state === 'on'}
-                    onChange={() => onEntityToggle(entity.entity_id)}
-                    disabled={false}
-                  />
+                  <p className="text-sm text-gray-600">{batteryEntity.friendly_name || 'Battery'}</p>
                 </div>
-              ))}
-            </div>
+              );
+            })()}
           </CardContent>
         </Card>
 
+        {/* Sensor Card - Energy Consumption */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Power className="w-5 h-5 text-blue-500" />
-              <span>Switches & Outlets</span>
-            </CardTitle>
+            <CardTitle>Energy Usage (Sensor)</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {switchEntities.slice(0, 4).map(entity => (
-                <div key={entity.entity_id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-gray-900">{entity.friendly_name}</p>
-                    <p className="text-sm text-gray-500">
-                      {entity.state === 'on' ? 'On' : 'Off'}
-                      {entity.attributes.current_power_w && ` • ${entity.attributes.current_power_w}W`}
-                    </p>
+            {(() => {
+              const energyEntity = sensorEntities.find(e => e.device_class === 'energy' || e.entity_id.includes('energy')) || sensorEntities[1];
+              if (!energyEntity) return <div className="text-center text-gray-400 py-8">No sensor available</div>;
+
+              return (
+                <div className="text-center py-4">
+                  <div className="text-4xl font-bold text-gray-900 mb-1">
+                    {energyEntity.state}
+                    <span className="text-lg text-gray-500 ml-2">{energyEntity.unit_of_measurement || 'kWh'}</span>
                   </div>
-                  <Switch
-                    checked={entity.state === 'on'}
-                    onChange={() => onEntityToggle(entity.entity_id)}
-                    disabled={false}
-                  />
+                  <p className="text-sm text-gray-600">{energyEntity.friendly_name || 'Energy Consumption'}</p>
                 </div>
-              ))}
-            </div>
+              );
+            })()}
+          </CardContent>
+        </Card>
+
+        {/* Light Card with Brightness */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Smart Light Control</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {(() => {
+              const lightEntity = lightEntities[0];
+              if (!lightEntity) return <div className="text-center text-gray-400 py-8">No light available</div>;
+
+              return (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                        lightEntity.state === 'on' ? 'bg-yellow-100' : 'bg-gray-100'
+                      }`}>
+                        <Lightbulb className={`w-6 h-6 ${lightEntity.state === 'on' ? 'text-yellow-600' : 'text-gray-400'}`} />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">{lightEntity.friendly_name}</p>
+                        <p className="text-sm text-gray-500 capitalize">{lightEntity.state}</p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={lightEntity.state === 'on'}
+                      onChange={() => onEntityToggle(lightEntity.entity_id)}
+                    />
+                  </div>
+                  {lightEntity.state === 'on' && lightEntity.attributes.brightness && (
+                    <div>
+                      <label className="block text-sm text-gray-600 mb-2">
+                        Brightness: {Math.round((lightEntity.attributes.brightness / 255) * 100)}%
+                      </label>
+                      <input type="range" min="0" max="255" value={lightEntity.attributes.brightness} className="w-full" disabled />
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* More Card Types */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Thermostat Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Climate Control (Thermostat)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {(() => {
+              const climateEntity = entities.find(e => e.entity_id.startsWith('climate.')) ||
+                sensorEntities.find(e => e.device_class === 'temperature');
+
+              if (!climateEntity) return <div className="text-center text-gray-400 py-8">No climate device available</div>;
+
+              return (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                        <Thermometer className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">{climateEntity.friendly_name || 'Temperature'}</p>
+                        <p className="text-sm text-gray-500">{climateEntity.state}°</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-2">Target Temperature</label>
+                    <input type="range" min="16" max="30" defaultValue="21" className="w-full" />
+                  </div>
+                </div>
+              );
+            })()}
+          </CardContent>
+        </Card>
+
+        {/* Grid Card - Multiple Entities */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Device Grid</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {(() => {
+              const gridEntities = [...lightEntities, ...switchEntities].slice(0, 4);
+              if (gridEntities.length === 0) return <div className="text-center text-gray-400 py-8">No devices available</div>;
+
+              return (
+                <div className="grid grid-cols-2 gap-3">
+                  {gridEntities.map(entity => (
+                    <div
+                      key={entity.entity_id}
+                      className="p-3 border border-gray-200 rounded-lg hover:border-blue-400 transition-colors cursor-pointer"
+                      onClick={() => onEntityToggle(entity.entity_id)}
+                    >
+                      <p className="text-xs font-medium text-gray-900 truncate">{entity.friendly_name}</p>
+                      <p className="text-xs text-gray-500 mt-1 capitalize">{entity.state}</p>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
           </CardContent>
         </Card>
       </div>
