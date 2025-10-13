@@ -193,6 +193,7 @@ export function FloatingChat({ isConnected, onEntityUpdate }: FloatingChatProps)
       const endTime = performance.now();
       const responseTime = Math.round(endTime - startTime);
 
+      console.log('[FloatingChat] Response time:', responseTime, 'ms');
       await dbService.addChatMessage(SESSION_ID, 'assistant', response, { responseTime });
 
       if (onEntityUpdate && (userMessageContent.toLowerCase().includes('turn on') ||

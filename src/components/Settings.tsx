@@ -88,6 +88,10 @@ export const Settings: React.FC<SettingsProps> = ({ onConnectionChange }) => {
         if (pricing.last_updated) {
           setLastPriceUpdate(new Date(pricing.last_updated).toLocaleString());
         }
+
+        if (pricing.pricing_mode === 'dynamic') {
+          energyPricingService.startDynamicPricing(pricing.update_interval_minutes || 5);
+        }
       } catch (error) {
         console.error('Failed to load pricing:', error);
       }
@@ -238,6 +242,12 @@ export const Settings: React.FC<SettingsProps> = ({ onConnectionChange }) => {
         pricing_mode: preferences.pricingMode,
         update_interval_minutes: preferences.updateIntervalMinutes
       });
+
+      if (preferences.pricingMode === 'dynamic') {
+        energyPricingService.startDynamicPricing(preferences.updateIntervalMinutes);
+      } else {
+        energyPricingService.stopDynamicPricing();
+      }
 
       alert('Settings saved successfully!');
     } catch (error) {

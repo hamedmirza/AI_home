@@ -39,15 +39,19 @@ export const Overview: React.FC<OverviewProps> = ({ entities, onEntityToggle, is
   }, [isConnected]);
 
   useEffect(() => {
+    if (!isConnected) return;
+
     const interval = setInterval(() => {
       setSystemStatus(prev => ({
         ...prev,
-        lastUpdate: new Date().toLocaleTimeString()
+        lastUpdate: new Date().toLocaleTimeString(),
+        entitiesOnline: entities.length
       }));
+      loadEnergyData();
     }, 30000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isConnected, entities.length]);
 
   const loadEnergyData = async () => {
     if (!isConnected) {
