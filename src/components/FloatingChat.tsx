@@ -36,7 +36,6 @@ export function FloatingChat({ isConnected, onEntityUpdate }: FloatingChatProps)
   const [isLoading, setIsLoading] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const loadedRef = useRef(false);
 
   const scrollToBottom = (force: boolean = false) => {
     setTimeout(() => {
@@ -66,13 +65,7 @@ export function FloatingChat({ isConnected, onEntityUpdate }: FloatingChatProps)
     }
 
     const loadChatHistory = async () => {
-      if (loadedRef.current) {
-        console.log('[FloatingChat] Already loading, skipping...');
-        return;
-      }
-
       try {
-        loadedRef.current = true;
         console.log('[FloatingChat] Loading chat history...');
 
         const history = await dbService.getChatHistory(SESSION_ID, 100);
@@ -95,8 +88,6 @@ export function FloatingChat({ isConnected, onEntityUpdate }: FloatingChatProps)
       } catch (error) {
         console.error('[FloatingChat] Error loading chat history:', error);
         setMessages([]);
-      } finally {
-        loadedRef.current = false;
       }
     };
 

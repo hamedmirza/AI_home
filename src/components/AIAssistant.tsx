@@ -34,7 +34,6 @@ export function AIAssistant({ isConnected, onEntityUpdate }: AIAssistantProps) {
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const loadedRef = useRef(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -46,13 +45,7 @@ export function AIAssistant({ isConnected, onEntityUpdate }: AIAssistantProps) {
 
   useEffect(() => {
     const loadChatHistory = async () => {
-      if (loadedRef.current) {
-        console.log('[AIAssistant] Already loading, skipping...');
-        return;
-      }
-
       try {
-        loadedRef.current = true;
         setIsLoadingHistory(true);
         console.log('[AIAssistant] Loading chat history...');
 
@@ -75,7 +68,6 @@ export function AIAssistant({ isConnected, onEntityUpdate }: AIAssistantProps) {
         setMessages([]);
       } finally {
         setIsLoadingHistory(false);
-        loadedRef.current = false;
       }
     };
 
