@@ -222,10 +222,10 @@ function App() {
     loadEntities(); // Refresh entities after setup
   };
 
-  // Show login screen if not logged in
-  if (!isLoggedIn) {
-    return <Login onLogin={handleLogin} />;
-  }
+  // Bypass authentication for now
+  // if (!isLoggedIn) {
+  //   return <Login onLogin={handleLogin} />;
+  // }
 
   const navigation = [
     {
