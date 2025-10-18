@@ -19,6 +19,7 @@ export function AISuggestions({ entities }: AISuggestionsProps) {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'pending' | 'implemented'>('all');
   const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadSuggestions();
@@ -27,13 +28,18 @@ export function AISuggestions({ entities }: AISuggestionsProps) {
   const loadSuggestions = async () => {
     console.log('[AISuggestions] Loading suggestions with filter:', filter);
     setLoading(true);
+    setError(null);
     try {
       const status = filter === 'all' ? undefined : filter;
       const data = await auditService.getSuggestions(status);
       console.log('[AISuggestions] Loaded suggestions:', data.length, 'items');
       setSuggestions(data);
-    } catch (error) {
+      if (data.length === 0 && filter === 'all') {
+        setError('No suggestions found. Make sure you are signed in with Supabase and click "Generate Suggestions" to create some.');
+      }
+    } catch (error: any) {
       console.error('[AISuggestions] Failed to load suggestions:', error);
+      setError(`Failed to load suggestions: ${error.message || 'Unknown error'}. Check that you are properly authenticated.`);
     } finally {
       setLoading(false);
     }
@@ -132,6 +138,54 @@ export function AISuggestions({ entities }: AISuggestionsProps) {
     return <div className="flex items-center justify-center p-12">
       <div className="text-gray-500 dark:text-gray-400">Loading suggestions...</div>
     </div>;
+  }
+
+  if (error && suggestions.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <Lightbulb className="w-7 h-7 text-yellow-500" />
+              AI Suggestions
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Smart recommendations based on your usage patterns
+            </p>
+          </div>
+          <Button onClick={generateSuggestions} disabled={generating}>
+            {generating ? (
+              <>
+                <div className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                Analyzing...
+              </>
+            ) : (
+              <>
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Generate Suggestions
+              </>
+            )}
+          </Button>
+        </div>
+        <Card>
+          <div className="p-8 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+              <XCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              Error Loading Suggestions
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              {error}
+            </p>
+            <Button onClick={loadSuggestions} variant="secondary">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Try Again
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
   }
 
   return (

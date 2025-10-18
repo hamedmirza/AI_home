@@ -3,80 +3,120 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Switch } from './ui/Switch';
-import { Bot, Lock, User, Eye, EyeOff, Shield, Home, Sparkles } from 'lucide-react';
+import { Bot, Lock, User, Eye, EyeOff, Shield, Home, Sparkles, UserPlus } from 'lucide-react';
+import { supabase } from '../services/database';
 
 interface LoginProps {
-  onLogin: (credentials: { username: string; password: string }) => void;
+  onLogin: () => void;
 }
 
 export const Login: React.FC<LoginProps> = ({ onLogin }) => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
-    // Load saved credentials
-    try {
-      const savedCredentials = localStorage.getItem('loginCredentials');
-      if (savedCredentials) {
-        const { username: savedUsername, password: savedPassword, remember } = JSON.parse(savedCredentials);
-        if (remember) {
-          setUsername(savedUsername || '');
-          setPassword(savedPassword || '');
-          setRememberMe(true);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load saved credentials:', error);
-    }
+    // Check if user is already logged in
+    checkUser();
   }, []);
+
+  const checkUser = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      onLogin();
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
-    if (!username.trim() || !password.trim()) {
-      setError('Please enter both username and password');
+    setMessage('');
+
+    if (!email.trim() || !password.trim()) {
+      setError('Please enter both email and password');
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // Simulate authentication delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Save credentials if remember me is checked
-      if (rememberMe) {
-        const credentials = {
-          username,
+      if (isSignUp) {
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email,
           password,
-          remember: true
-        };
-        localStorage.setItem('loginCredentials', JSON.stringify(credentials));
-      } else {
-        localStorage.removeItem('loginCredentials');
-      }
+        });
 
-      // Call the login handler
-      onLogin({ username, password });
-    } catch (error) {
-      setError('Login failed. Please try again.');
+        if (signUpError) throw signUpError;
+
+        if (data.user) {
+          setMessage('Sign up successful! Please check your email for verification (or you can sign in directly in dev mode).');
+          setIsSignUp(false);
+        }
+      } else {
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (signInError) throw signInError;
+
+        if (data.session) {
+          onLogin();
+        }
+      }
+    } catch (error: any) {
+      console.error('Auth error:', error);
+      setError(error.message || 'Authentication failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleDemoLogin = () => {
-    setUsername('admin');
-    setPassword('admin123');
-    setRememberMe(true);
-    setTimeout(() => {
-      onLogin({ username: 'admin', password: 'admin123' });
-    }, 500);
+  const handleDemoLogin = async () => {
+    setError('');
+    setMessage('');
+    setIsLoading(true);
+
+    // Demo credentials - you can change these
+    const demoEmail = 'demo@example.com';
+    const demoPassword = 'demo123456';
+
+    try {
+      // Try to sign in
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: demoEmail,
+        password: demoPassword,
+      });
+
+      if (signInError) {
+        // If sign in fails, try to sign up
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: demoEmail,
+          password: demoPassword,
+        });
+
+        if (signUpError) throw signUpError;
+
+        // Try to sign in again after signup
+        const { error: retrySignInError } = await supabase.auth.signInWithPassword({
+          email: demoEmail,
+          password: demoPassword,
+        });
+
+        if (retrySignInError) throw retrySignInError;
+      }
+
+      onLogin();
+    } catch (error: any) {
+      console.error('Demo login error:', error);
+      setError(`Demo login failed: ${error.message}. Try signing up with your own email.`);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -110,18 +150,19 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
         <CardContent className="space-y-6">
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Username Field */}
+            {/* Email Field */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-200">Username</label>
+              <label className="text-sm font-medium text-gray-200">Email</label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter your username"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
                   className="pl-10 bg-white/10 border-white/20 text-white placeholder-gray-400 focus:border-blue-400"
                   disabled={isLoading}
+                  required
                 />
               </div>
             </div>
@@ -150,23 +191,15 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
               </div>
             </div>
 
-            {/* Remember Me */}
+            {/* Sign Up Toggle */}
             <div className="flex items-center justify-between">
-              <label className="flex items-center space-x-2 text-sm text-gray-200">
-                <Switch
-                  checked={rememberMe}
-                  onChange={setRememberMe}
-                  size="sm"
-                  disabled={isLoading}
-                />
-                <span>Remember me</span>
-              </label>
               <button
                 type="button"
+                onClick={() => { setIsSignUp(!isSignUp); setError(''); setMessage(''); }}
                 className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
                 disabled={isLoading}
               >
-                Forgot password?
+                {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
               </button>
             </div>
 
@@ -174,6 +207,13 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             {error && (
               <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg text-red-300 text-sm">
                 {error}
+              </div>
+            )}
+
+            {/* Success Message */}
+            {message && (
+              <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-lg text-green-300 text-sm">
+                {message}
               </div>
             )}
 
@@ -186,12 +226,12 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
               {isLoading ? (
                 <div className="flex items-center space-x-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Signing in...</span>
+                  <span>{isSignUp ? 'Creating account...' : 'Signing in...'}</span>
                 </div>
               ) : (
                 <div className="flex items-center space-x-2">
-                  <Shield className="w-4 h-4" />
-                  <span>Sign In</span>
+                  {isSignUp ? <UserPlus className="w-4 h-4" /> : <Shield className="w-4 h-4" />}
+                  <span>{isSignUp ? 'Sign Up' : 'Sign In'}</span>
                 </div>
               )}
             </Button>
@@ -214,7 +254,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             disabled={isLoading}
           >
             <Sparkles className="w-4 h-4 mr-2" />
-            Try Demo (admin/admin123)
+            Try Demo Account
           </Button>
 
           {/* Features */}

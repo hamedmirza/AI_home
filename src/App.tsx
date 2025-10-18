@@ -17,6 +17,7 @@ import { AuditTrail } from './components/AuditTrail';
 import { Entity } from './types/homeAssistant';
 import { homeAssistantService } from './services/homeAssistant';
 import { energyPricingService } from './services/energyPricingService';
+import { supabase } from './services/database';
 import { Home, Settings as SettingsIcon, Zap, Bot, Grid3x3 as Grid3X3, Menu, X, LayoutDashboard, Activity, Battery, Shield, FileText } from 'lucide-react';
 
 type ActiveTab = 'overview' | 'dashboards' | 'smart-dashboards' | 'entities' | 'energy' | 'energy-dashboard' | 'automations' | 'ai' | 'admin' | 'audit' | 'settings';
@@ -80,33 +81,50 @@ function App() {
   }, []);
 
   useEffect(() => {
-    // Check if user is already logged in
-    const savedSession = localStorage.getItem('userSession');
-    if (savedSession) {
-      try {
-        const session = JSON.parse(savedSession);
-        if (session.isLoggedIn && session.username) {
-          setIsLoggedIn(true);
-          setCurrentUser(session.username);
-        }
-      } catch (error) {
-        console.error('Failed to load user session:', error);
+    // Check Supabase authentication
+    checkAuthStatus();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        setIsLoggedIn(true);
+        setCurrentUser(session.user.email || 'User');
+      } else {
+        setIsLoggedIn(false);
+        setCurrentUser('');
       }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const checkAuthStatus = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      setIsLoggedIn(true);
+      setCurrentUser(session.user.email || 'User');
+    } else {
+      setIsLoggedIn(false);
     }
 
+  };
+
+  useEffect(() => {
     // Check if initial setup has been completed
     const setupCompleted = localStorage.getItem('initialSetupCompleted');
     if (!setupCompleted && entities.length > 0 && isConnected) {
       setShowInitialSetup(true);
     }
-    
+
     // Check connection status and auto-connect if credentials exist
     const checkAndAutoConnect = async () => {
       if (homeAssistantService.isConnected()) {
         setIsConnected(true);
         return;
       }
-      
+
       // Try to auto-connect if we have saved credentials
       try {
         const savedConfig = localStorage.getItem('homeAssistantConfig');
@@ -124,44 +142,25 @@ function App() {
         setIsConnected(false);
       }
     };
-    
+
     checkAndAutoConnect();
     setLoading(false);
-  }, []);
+  }, [entities, isConnected]);
 
-  const handleLogin = (credentials: { username: string; password: string }) => {
-    // Simple authentication - in production, this would validate against a backend
-    const validCredentials = [
-      { username: 'admin', password: 'admin123' },
-      { username: 'user', password: 'user123' },
-      { username: 'demo', password: 'demo' }
-    ];
-
-    const isValid = validCredentials.some(
-      cred => cred.username === credentials.username && cred.password === credentials.password
-    );
-
-    if (isValid) {
+  const handleLogin = async () => {
+    // Authentication is handled by Supabase in Login component
+    // Just refresh auth state here
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
       setIsLoggedIn(true);
-      setCurrentUser(credentials.username);
-      
-      // Save session
-      const session = {
-        isLoggedIn: true,
-        username: credentials.username,
-        loginTime: new Date().toISOString()
-      };
-      localStorage.setItem('userSession', JSON.stringify(session));
-    } else {
-      alert('Invalid credentials. Try admin/admin123 or user/user123');
+      setCurrentUser(session.user.email || 'User');
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     setIsLoggedIn(false);
     setCurrentUser('');
-    localStorage.removeItem('userSession');
-    localStorage.removeItem('loginCredentials'); // Optional: also remove saved credentials
   };
 
   useEffect(() => {

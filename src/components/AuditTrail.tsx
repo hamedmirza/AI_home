@@ -88,14 +88,19 @@ export function AuditTrail() {
 
       // Create sample suggestion
       await auditService.createSuggestion({
-        suggestion_type: 'energy_optimization',
+        suggestion_type: 'optimization',
         title: 'Optimize bedroom lighting schedule',
         description: 'Your bedroom lights are often on when no motion is detected. Consider adding motion sensors or adjusting the schedule.',
         confidence: 0.85,
-        entity_ids: ['light.bedroom_main', 'light.bedroom_reading'],
-        config_changes: { schedule: { on: '07:00', off: '23:00' } },
-        estimated_savings: 12.5,
-        source: 'usage_pattern_analysis'
+        impact: 'medium',
+        category: 'energy',
+        entities_involved: ['light.bedroom_main', 'light.bedroom_reading'],
+        status: 'pending',
+        data: {
+          config_changes: { schedule: { on: '07:00', off: '23:00' } },
+          estimated_savings: 12.5,
+          source: 'usage_pattern_analysis'
+        }
       });
 
       // Reload data to show sample entries

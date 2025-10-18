@@ -62,7 +62,7 @@ export interface SyncStatus {
 
 export class DatabaseService {
   private client: SupabaseClient;
-  private syncIntervals: Map<string, NodeJS.Timeout> = new Map();
+  private syncIntervals: Map<string, number> = new Map();
 
   constructor() {
     this.client = supabase;
