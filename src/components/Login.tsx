@@ -120,19 +120,19 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-6 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-6 relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-40 left-40 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400 dark:bg-blue-600 rounded-full mix-blend-multiply filter blur-xl opacity-10 dark:opacity-20 animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-cyan-400 dark:bg-cyan-600 rounded-full mix-blend-multiply filter blur-xl opacity-10 dark:opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-40 left-40 w-80 h-80 bg-teal-400 dark:bg-teal-600 rounded-full mix-blend-multiply filter blur-xl opacity-10 dark:opacity-20 animate-blob animation-delay-4000"></div>
       </div>
 
       {/* Login Card */}
-      <Card className="w-full max-w-md relative backdrop-blur-sm bg-white/10 border-white/20 shadow-2xl">
+      <Card className="w-full max-w-md relative backdrop-blur-sm bg-white/95 dark:bg-slate-800/95 border-slate-200 dark:border-slate-700 shadow-2xl">
         <CardHeader className="text-center pb-8">
           {/* Logo */}
-          <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+          <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg">
             <div className="relative">
               <Bot className="w-10 h-10 text-white" />
               <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
@@ -140,10 +140,10 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </div>
           
           {/* Title */}
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
+          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-2">
             AI Smart Home
           </CardTitle>
-          <p className="text-gray-300 text-sm">
+          <p className="text-slate-600 dark:text-slate-300 text-sm">
             Intelligent Home Management System
           </p>
         </CardHeader>
@@ -152,15 +152,15 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email Field */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-200">Email</label>
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Email</label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
-                  className="pl-10 bg-white/10 border-white/20 text-white placeholder-gray-400 focus:border-blue-400"
+                  className="pl-10 bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder-slate-400 focus:border-blue-500"
                   disabled={isLoading}
                   required
                 />
@@ -169,21 +169,21 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
             {/* Password Field */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-200">Password</label>
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Password</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="pl-10 pr-10 bg-white/10 border-white/20 text-white placeholder-gray-400 focus:border-blue-400"
+                  className="pl-10 pr-10 bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder-slate-400 focus:border-blue-500"
                   disabled={isLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-200"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                   disabled={isLoading}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -196,7 +196,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
               <button
                 type="button"
                 onClick={() => { setIsSignUp(!isSignUp); setError(''); setMessage(''); }}
-                className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
                 disabled={isLoading}
               >
                 {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
@@ -220,7 +220,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             {/* Login Button */}
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 transition-all duration-200 transform hover:scale-[1.02]"
+              className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-medium py-3 transition-all duration-200 transform hover:scale-[1.02]"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -240,17 +240,17 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
           {/* Demo Login */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/20"></div>
+              <div className="w-full border-t border-slate-300 dark:border-slate-600"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-transparent text-gray-400">or</span>
+              <span className="px-2 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400">or</span>
             </div>
           </div>
 
           <Button
             onClick={handleDemoLogin}
             variant="outline"
-            className="w-full border-white/20 text-gray-200 hover:bg-white/10 transition-all duration-200"
+            className="w-full border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200"
             disabled={isLoading}
           >
             <Sparkles className="w-4 h-4 mr-2" />
@@ -258,25 +258,25 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </Button>
 
           {/* Features */}
-          <div className="pt-4 border-t border-white/20">
+          <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
             <div className="grid grid-cols-3 gap-4 text-center">
               <div className="space-y-2">
-                <div className="w-8 h-8 mx-auto bg-blue-500/20 rounded-lg flex items-center justify-center">
-                  <Bot className="w-4 h-4 text-blue-400" />
+                <div className="w-8 h-8 mx-auto bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                  <Bot className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 </div>
-                <p className="text-xs text-gray-300">AI Assistant</p>
+                <p className="text-xs text-slate-600 dark:text-slate-300">AI Assistant</p>
               </div>
               <div className="space-y-2">
-                <div className="w-8 h-8 mx-auto bg-green-500/20 rounded-lg flex items-center justify-center">
-                  <Home className="w-4 h-4 text-green-400" />
+                <div className="w-8 h-8 mx-auto bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                  <Home className="w-4 h-4 text-green-600 dark:text-green-400" />
                 </div>
-                <p className="text-xs text-gray-300">Smart Control</p>
+                <p className="text-xs text-slate-600 dark:text-slate-300">Smart Control</p>
               </div>
               <div className="space-y-2">
-                <div className="w-8 h-8 mx-auto bg-purple-500/20 rounded-lg flex items-center justify-center">
-                  <Shield className="w-4 h-4 text-purple-400" />
+                <div className="w-8 h-8 mx-auto bg-cyan-100 dark:bg-cyan-900/30 rounded-lg flex items-center justify-center">
+                  <Shield className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
                 </div>
-                <p className="text-xs text-gray-300">Secure</p>
+                <p className="text-xs text-slate-600 dark:text-slate-300">Secure</p>
               </div>
             </div>
           </div>
@@ -285,7 +285,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
       {/* Footer */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-center">
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-slate-500 dark:text-slate-400">
           AI Smart Home Management System v2.0
         </p>
       </div>

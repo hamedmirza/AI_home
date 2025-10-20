@@ -83,21 +83,21 @@ export const Overview: React.FC<OverviewProps> = ({ entities, onEntityToggle, is
   return (
     <div className="space-y-6">
       {/* System Status Bar */}
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+      <Card className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-slate-800 dark:to-slate-700 border-blue-200 dark:border-slate-600">
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <Wifi className={`w-4 h-4 ${systemStatus.connected ? 'text-green-500' : 'text-red-500'}`} />
-                <span className="text-sm font-medium">
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
                   {systemStatus.connected ? 'Connected' : 'Disconnected'}
                 </span>
               </div>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-slate-600 dark:text-slate-400">
                 {systemStatus.entitiesOnline} entities online
               </div>
             </div>
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-slate-600 dark:text-slate-400">
               Last update: {systemStatus.lastUpdate}
             </div>
           </div>
@@ -106,57 +106,57 @@ export const Overview: React.FC<OverviewProps> = ({ entities, onEntityToggle, is
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card className="hover:shadow-lg transition-all duration-200 border-slate-200 dark:border-slate-700">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Active Devices</p>
-                <p className="text-2xl font-bold text-gray-900">{activeDevices}</p>
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Active Devices</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white">{activeDevices}</p>
               </div>
-              <div className="p-3 bg-blue-100 rounded-full">
-                <Power className="w-6 h-6 text-blue-600" />
+              <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
+                <Power className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card className="hover:shadow-lg transition-all duration-200 border-slate-200 dark:border-slate-700">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Temperature</p>
-                <p className="text-2xl font-bold text-gray-900">{temperature}°C</p>
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Temperature</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white">{temperature}°C</p>
               </div>
-              <div className="p-3 bg-orange-100 rounded-full">
-                <Thermometer className="w-6 h-6 text-orange-600" />
+              <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-xl">
+                <Thermometer className="w-6 h-6 text-orange-600 dark:text-orange-400" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card className="hover:shadow-lg transition-all duration-200 border-slate-200 dark:border-slate-700">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Energy Today</p>
-                <p className="text-2xl font-bold text-gray-900">{todaysConsumption.toFixed(1)} kWh</p>
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Energy Today</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white">{todaysConsumption.toFixed(1)} kWh</p>
               </div>
-              <div className="p-3 bg-green-100 rounded-full">
-                <Zap className="w-6 h-6 text-green-600" />
+              <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
+                <Zap className="w-6 h-6 text-green-600 dark:text-green-400" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card className="hover:shadow-lg transition-all duration-200 border-slate-200 dark:border-slate-700">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Entities</p>
-                <p className="text-2xl font-bold text-gray-900">{entities.length}</p>
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Total Entities</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white">{entities.length}</p>
               </div>
-              <div className="p-3 bg-purple-100 rounded-full">
-                <Home className="w-6 h-6 text-purple-600" />
+              <div className="p-3 bg-cyan-100 dark:bg-cyan-900/30 rounded-xl">
+                <Home className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
               </div>
             </div>
           </CardContent>

@@ -35,7 +35,7 @@ class EnergyPricingService {
     update_interval_minutes: 5
   };
 
-  private updateInterval: NodeJS.Timeout | null = null;
+  private updateInterval: number | null = null;
   private listeners: Array<(pricing: EnergyPricing) => void> = [];
   private isUpdating: boolean = false;
 

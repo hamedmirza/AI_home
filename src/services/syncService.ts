@@ -3,8 +3,8 @@ import { dbService } from './database';
 import { energyPatternService } from './energyPatternService';
 
 class SyncService {
-  private entitySyncInterval: NodeJS.Timeout | null = null;
-  private historySyncInterval: NodeJS.Timeout | null = null;
+  private entitySyncInterval: number | null = null;
+  private historySyncInterval: number | null = null;
   private monitoredEntities: Set<string> = new Set();
   private lastStates: Map<string, string> = new Map();
 

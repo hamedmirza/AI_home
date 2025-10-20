@@ -222,10 +222,9 @@ function App() {
     loadEntities(); // Refresh entities after setup
   };
 
-  // Bypass authentication for now
-  // if (!isLoggedIn) {
-  //   return <Login onLogin={handleLogin} />;
-  // }
+  if (!isLoggedIn) {
+    return <Login onLogin={handleLogin} />;
+  }
 
   const navigation = [
     {
@@ -354,12 +353,12 @@ function App() {
           {/* Logo/Header */}
           <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-xl flex items-center justify-center shadow-sm">
                 <Home className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-gray-900 dark:text-white">AI Smart Home</h1>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Welcome, {currentUser}</p>
+                <h1 className="text-lg font-semibold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">AI Smart Home</h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Welcome, {currentUser}</p>
               </div>
             </div>
             <button
@@ -383,16 +382,16 @@ function App() {
                     setActiveTab(item.id);
                     setSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center px-3 py-3 text-left rounded-lg transition-all duration-200 ${
-                    isActive 
-                      ? 'bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 shadow-sm' 
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  className={`w-full flex items-center px-3 py-3 text-left rounded-xl transition-all duration-200 ${
+                    isActive
+                      ? 'bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 text-blue-700 dark:text-blue-300 shadow-sm border border-blue-200 dark:border-blue-800'
+                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'
                   }`}
                 >
-                  <Icon className={`w-5 h-5 mr-3 ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`} />
+                  <Icon className={`w-5 h-5 mr-3 ${isActive ? 'text-blue-600 dark:text-cyan-400' : 'text-slate-500 dark:text-slate-400'}`} />
                   <div>
                     <div className="font-medium">{item.name}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">{item.description}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400">{item.description}</div>
                   </div>
                 </button>
               );
