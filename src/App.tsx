@@ -30,8 +30,8 @@ function App() {
   const [darkMode, setDarkMode] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [showInitialSetup, setShowInitialSetup] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentUser, setCurrentUser] = useState<string>('');
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [currentUser, setCurrentUser] = useState<string>('Demo User');
 
   // Get pinned dashboards for sidebar - moved to top to fix hooks order
   const [pinnedDashboards, setPinnedDashboards] = useState<any[]>([]);
@@ -222,9 +222,10 @@ function App() {
     loadEntities(); // Refresh entities after setup
   };
 
-  if (!isLoggedIn) {
-    return <Login onLogin={handleLogin} />;
-  }
+  // Bypass authentication for quick testing
+  // if (!isLoggedIn) {
+  //   return <Login onLogin={handleLogin} />;
+  // }
 
   const navigation = [
     {
