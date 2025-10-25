@@ -85,30 +85,41 @@ function App() {
     checkAuthStatus();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    try {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        if (session) {
+          setIsLoggedIn(true);
+          setCurrentUser(session.user.email || 'User');
+        } else {
+          setIsLoggedIn(false);
+          setCurrentUser('');
+        }
+      });
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    } catch (error) {
+      console.warn('Supabase not configured, running in offline mode');
+      setIsLoggedIn(true);
+      setCurrentUser('Demo User');
+    }
+  }, []);
+
+  const checkAuthStatus = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setIsLoggedIn(true);
         setCurrentUser(session.user.email || 'User');
       } else {
         setIsLoggedIn(false);
-        setCurrentUser('');
       }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  const checkAuthStatus = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
+    } catch (error) {
+      console.warn('Supabase not configured, running in offline mode');
       setIsLoggedIn(true);
-      setCurrentUser(session.user.email || 'User');
-    } else {
-      setIsLoggedIn(false);
+      setCurrentUser('Demo User');
     }
-
   };
 
   useEffect(() => {
@@ -158,7 +169,11 @@ function App() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.warn('Supabase not configured, logging out locally');
+    }
     setIsLoggedIn(false);
     setCurrentUser('');
   };
