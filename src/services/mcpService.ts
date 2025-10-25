@@ -54,7 +54,24 @@ class MCPService {
     });
 
     if (!response.ok) {
-      throw new Error(`MCP request failed: ${response.statusText}`);
+      // Try to extract server-provided error details
+      let details = response.statusText;
+      try {
+        const text = await response.text();
+        try {
+          const json = JSON.parse(text);
+          if (json?.error?.message) {
+            details = `${response.status} ${response.statusText} - ${json.error.message}`;
+          } else {
+            details = `${response.status} ${response.statusText} - ${text.slice(0, 300)}`;
+          }
+        } catch {
+          details = `${response.status} ${response.statusText} - ${text.slice(0, 300)}`;
+        }
+      } catch {
+        // ignore
+      }
+      throw new Error(`MCP request failed: ${details}`);
     }
 
     const data: MCPResponse<T> = await response.json();
