@@ -1399,7 +1399,7 @@ export const Settings: React.FC<SettingsProps> = ({ onConnectionChange }) => {
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
             <div>
-              <span className="font-medium">App Version:</span> 1.0.0
+              <span className="font-medium">App Version:</span> 1.0.1
             </div>
             <div>
               <span className="font-medium">API Version:</span> 2023.12

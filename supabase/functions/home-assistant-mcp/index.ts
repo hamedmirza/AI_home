@@ -395,6 +395,35 @@ async function handleMCPRequest(request: MCPRequest, config: HomeAssistantConfig
 }
 
 Deno.serve(async (req: Request) => {
+  // Friendly response for accidental GET requests (e.g., opening URL in a browser)
+  if (req.method === "GET") {
+    return new Response(
+      JSON.stringify({
+        ok: true,
+        message: "Home Assistant MCP function is running. Use POST with JSON body.",
+        usage: {
+          endpoint: "/functions/v1/home-assistant-mcp",
+          method: "POST",
+          headers: {
+            Authorization: "Bearer <SUPABASE_ANON_KEY>",
+            "Content-Type": "application/json",
+          },
+          body_example: {
+            method: "home/ai_context",
+            ha_config: { url: "http://homeassistant.local:8123", token: "YOUR_TOKEN" },
+          },
+        },
+      }),
+      {
+        status: 200,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  }
+
   if (req.method === "OPTIONS") {
     return new Response(null, {
       status: 200,

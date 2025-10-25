@@ -36,6 +36,8 @@ curl -X POST \
   }'
 ```
 
+Note: Opening the endpoint URL in a browser (GET) will return a friendly JSON status message. Actual requests must be POST with a JSON body as shown above; otherwise you'll see a 400 Bad Request.
+
 ## Deployment
 
 The MCP server is deployed as a Supabase Edge Function at:
