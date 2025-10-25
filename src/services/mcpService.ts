@@ -20,11 +20,15 @@ class MCPService {
   private anonKey: string;
 
   constructor() {
-    this.baseUrl = import.meta.env.VITE_SUPABASE_URL;
-    this.anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    this.baseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+    this.anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
   }
 
   private async callMCP<T>(method: string, params?: Record<string, unknown>): Promise<T> {
+    if (!this.baseUrl || !this.anonKey) {
+      throw new Error('Supabase not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.');
+    }
+
     const haConfig = localStorage.getItem('homeAssistantConfig');
     if (!haConfig) {
       throw new Error('Home Assistant not configured');
@@ -54,7 +58,8 @@ class MCPService {
     });
 
     if (!response.ok) {
-      throw new Error(`MCP request failed: ${response.statusText}`);
+      const errorText = await response.text().catch(() => 'Unknown error');
+      throw new Error(`MCP request failed: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
     const data: MCPResponse<T> = await response.json();
